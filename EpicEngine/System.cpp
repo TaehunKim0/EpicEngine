@@ -1,0 +1,223 @@
+#include "stdafx.h"
+#include "Input.h"
+#include"Graphic.h"
+#include "System.h"
+
+
+System::System()
+{
+	m_ApplicationName = L"";
+	m_Graphic = nullptr;
+	m_HInstance = nullptr;
+	m_Hwnd = nullptr;
+	m_Input = nullptr;
+}
+
+System::System(const System&) : System()
+{
+}
+
+System::~System()
+{
+}
+
+bool System::Initialize()
+{
+	int screenWidth = 0;
+	int screenHeight = 0;
+
+	//윈도우 생성 초기화
+	InitWindows(screenWidth, screenHeight);
+
+	//Input 클래스 생성
+	m_Input = new Input();
+	if (!m_Input)
+		return false;
+
+	//Input 객체 초기화
+	m_Input->Initialize();
+	
+	//그래픽 객체 생성, 그래픽 렌더링을 처리하기 위한 객체
+	m_Graphic = new Graphic();
+	if (!m_Graphic)
+		return false;
+
+	//그래픽 객체 초기화
+	return m_Graphic->Initialize(screenWidth, screenHeight, m_Hwnd);
+}
+
+void System::Shutdown()
+{
+	if (m_Graphic)
+	{
+		m_Graphic->Shutdown();
+		delete m_Graphic;
+		m_Graphic = 0;
+	}
+
+	if (m_Input)
+	{
+		delete m_Input;
+		m_Input = 0;
+	}
+
+	ShutdownWindows();
+}
+
+void System::ShutdownWindows()
+{
+	//풀스크린이면 디스플레이 설정 초기화
+	if (FULL_SCREEN)
+		ChangeDisplaySettings(NULL, 0);
+
+	//창을 제거
+	DestroyWindow(m_Hwnd);
+	m_Hwnd = NULL;
+
+	//프로그램 인스턴스 제거
+	UnregisterClass(m_ApplicationName, m_HInstance);
+	m_HInstance = NULL;
+
+	//외부포인터 참조를 초기화
+	ApplicationHandle = NULL;
+}
+void System::Run()
+{
+	MSG msg;
+	ZeroMemory(&msg, sizeof(MSG));
+
+	while (true)
+	{
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			if (msg.message == WM_QUIT)
+				break;
+
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		else
+		{
+			if (!Frame())
+				break;
+		}
+	}
+}
+
+LRESULT System::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
+{
+	switch (umsg)
+	{
+		case WM_KEYDOWN:
+		{
+			m_Input->KeyDown((unsigned int)wparam);
+			return 0;
+		}
+		case WM_KEYUP:
+		{
+			m_Input->KeyDown((unsigned int)wparam);
+			return 0;
+		}
+		default:
+		{
+			return DefWindowProc(hwnd, umsg, wparam, lparam);
+		}
+	}
+}
+
+bool System::Frame()
+{
+	//ESC 감지 시 종료 여부를 처리합니다
+	if (m_Input->IsKeyDown(VK_ESCAPE))
+		return false;
+
+	//그래픽 객체의 프레임을 처리합니다
+	return m_Graphic->Frame();
+}
+
+void System::InitWindows(int& screenWidth, int& screenHeight)
+{
+	//외부 포인터를 이 객체로 지정합니다.
+	ApplicationHandle = this;
+
+	// 이 프로그램의 인스턴스를 가져옴
+	m_HInstance = GetModuleHandle(NULL);
+
+	//프로그램 이름을 지정합니다.
+	m_ApplicationName = L"Dx11 Demo";
+
+	//windows 클래스를 아래와 같이 설정
+	WNDCLASSEX wc;
+	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+	wc.lpfnWndProc = WndProc;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = m_HInstance;
+	wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
+	wc.hIconSm = wc.hIcon;
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+	wc.lpszMenuName = NULL;
+	wc.lpszClassName = m_ApplicationName;
+	wc.cbSize = sizeof(WNDCLASSEX);
+
+	//windows class 등록
+	RegisterClassEx(&wc);
+
+	//모니터 화면의 해상도를 읽어옵니다
+	screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+	int posX = 0;
+	int posY = 0;
+
+	if (FULL_SCREEN)
+	{
+		// 풀스크린 모드로 지정했다면 모니터 화면 해상도를 데스크톱 해상도로 지정하고 색상을 32bit로 지정
+		DEVMODE dmScreenSettings;
+		memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
+		dmScreenSettings.dmSize = sizeof(dmScreenSettings);
+		dmScreenSettings.dmPelsWidth = (unsigned long)screenWidth;
+		dmScreenSettings.dmPelsHeight = (unsigned long)screenHeight;
+		dmScreenSettings.dmBitsPerPel = 32;
+		dmScreenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
+
+		//풀 스크린으로 디스플레이 설정을 변경합니다.
+		ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
+	}
+	else
+	{
+		screenWidth = 800;
+		screenHeight = 600;
+
+		posX = (GetSystemMetrics(SM_CXSCREEN) - screenWidth) / 2;
+		posY = (GetSystemMetrics(SM_CYSCREEN) - screenHeight) / 2;
+
+	}
+
+	m_Hwnd = CreateWindowEx(WS_EX_APPWINDOW, m_ApplicationName, m_ApplicationName,
+		WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP,
+		posX, posY, screenWidth, screenHeight, NULL, NULL, m_HInstance, NULL);
+
+	ShowWindow(m_Hwnd, SW_SHOW);
+	SetForegroundWindow(m_Hwnd);
+	SetFocus(m_Hwnd);
+}
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
+{
+	switch (umsg)
+	{
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+
+	case WM_CLOSE:
+		PostQuitMessage(0);
+		return 0;
+
+	default:
+		return ApplicationHandle->MessageHandler(hwnd, umsg, wparam, lparam);
+
+	}
+}
