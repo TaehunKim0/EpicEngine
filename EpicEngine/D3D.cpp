@@ -3,9 +3,17 @@
 
 D3D::D3D()
 {
+	m_swapChain = nullptr;
+	m_depthStencilBuffer = nullptr;
+	m_depthStencilState = nullptr;
+	m_depthStencilView = nullptr;
+	m_device = nullptr;
+	m_deviceContext = nullptr;
+	m_rasterState = nullptr;
+	m_renderTargetView = nullptr;
 }
 
-D3D::D3D(const D3D& other)
+D3D::D3D(const D3D& other) : D3D()
 {
 }
 
@@ -27,7 +35,6 @@ bool D3D::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hwnd, b
 	IDXGIAdapter* adapter = nullptr;
 	if (FAILED(factory->EnumAdapters(0, &adapter)))
 		return false;
-
 
 	//출력(모니터)에 대한 첫번째 어댑터를 지정합니다.
 	IDXGIOutput* adapterOutput = nullptr;
@@ -160,11 +167,17 @@ bool D3D::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hwnd, b
 		D3D11_SDK_VERSION, &swapChainDesc, &m_swapChain, &m_device, NULL, &m_deviceContext)))
 		return false;
 
-	//백버퍼 포인터를 얻어옵니다.
-	ID3D11Texture2D* backBufferPtr = nullptr;
+	//D3D_DRIVER_TYPE_HARDWARE == D3DDEVTYPE_HAL
+
+	//스왑체인을 만들어도	스왑체인의 백버퍼는 Direct3D의 렌더타겟으로 설정되어있지 않다.
+	//그래서 스왑체인에서 백버퍼를 취하여 디바이스의 렌더타겟으로 설정해야 한다.
+
+	//GetBuffer로 백버퍼 포인터를 얻어올 수 있다.
+	ID3D11Texture2D* backBufferPtr = nullptr; //2D 텍스쳐로써 백버퍼를 얻어오고 있다.
 	if(FAILED(m_swapChain->GetBuffer(0, _uuidof(ID3D11Texture2D),(LPVOID*)&backBufferPtr)))
 		return false;
 
+	//텍스쳐는 파이프라인으로부터 뷰를 통하여 액세스하며 렌더타겟에는 렌더타겟 뷰를 사용한다.
 	//백버퍼 포인터로 렌더 타겟 뷰를 생성한다.
 	if (FAILED(m_device->CreateRenderTargetView(backBufferPtr, NULL, &m_renderTargetView)))
 		return false;

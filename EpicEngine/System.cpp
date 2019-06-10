@@ -37,7 +37,7 @@ bool System::Initialize()
 	//Input 객체 초기화
 	m_Input->Initialize();
 	
-	//그래픽 객체 생성, 그래픽 렌더링을 처리하기 위한 객체
+	//그래픽 객체 생성, 이 어플의 모든 그래픽 요소를 그리는 일. 그래픽 렌더링을 처리하기 위한 객체
 	m_Graphic = new Graphic();
 	if (!m_Graphic)
 		return false;

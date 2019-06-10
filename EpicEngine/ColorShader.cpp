@@ -8,6 +8,7 @@ ColorShader::ColorShader()
 	m_pixelShader = nullptr;
 	m_layout = nullptr;
 	m_matrixBuffer = nullptr;
+	
 }
 
 ColorShader::ColorShader(const ColorShader& other) : ColorShader()
@@ -33,7 +34,7 @@ bool ColorShader::Initialize(ID3D11Device* device, HWND hwnd)
 	if (!result)
 		return false;
 
-	return true;
+	return true;	
 }
 
 void ColorShader::Shutdown()

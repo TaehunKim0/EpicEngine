@@ -1,6 +1,5 @@
 #pragma once
-#ifndef  _TEXTURE_H_
-#define _TEXTURE_H_
+
 
 #include<d3d11.h>
 #include<d3dx10math.h>
@@ -45,4 +44,3 @@ private:
 	ID3D11SamplerState* m_sampleState;
 };
 
-#endif // ! _TEXTURE_H_

@@ -27,6 +27,7 @@ bool Model::Initialize(ID3D11Device* device, WCHAR* textureFileName)
 	if (!result)
 		return false;
 
+	result = LoadTexture(device, textureFileName);
 	if (!result)
 		return false;
 

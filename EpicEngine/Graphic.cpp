@@ -7,13 +7,13 @@ Graphic::Graphic()
 	m_Direct3D = nullptr;
 	m_Camera = nullptr;
 	m_Model = nullptr;
-	m_ColorShader = nullptr;
+	//m_ColorShader = nullptr;
+	m_TextureShader = nullptr;
 }
 
 Graphic::Graphic(const Graphic& other) : Graphic()
 {
 }
-
 
 Graphic::~Graphic()
 {
@@ -29,7 +29,7 @@ bool Graphic::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 
 	//Direct3D 객체 초기화
-	if (!m_Direct3D->Initialize(screenWidth, screenHeight, VSYNC_ENABLED, hwnd, FULL_SCREEN, SCREEN_DEPTH, SCREEN_NEAR))
+	if (!(m_Direct3D->Initialize(screenWidth, screenHeight, VSYNC_ENABLED, hwnd, FULL_SCREEN, SCREEN_DEPTH, SCREEN_NEAR)))
 	{
 		MessageBox(hwnd, L"Could not initialize Direct3D", L"Error", MB_OK);
 		return false;
@@ -48,7 +48,7 @@ bool Graphic::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	if (!m_Model)
 		return false;
 
-	const WCHAR* pwcsName = L"../Engine/data/seafloor.dds";
+	const WCHAR* pwcsName = L"../EpicEngine/data/seafloor.dds";
 	wchar_t* tempWide = const_cast <wchar_t*> (pwcsName);
 
 	//모델 오브젝트 초기화
@@ -59,18 +59,32 @@ bool Graphic::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	//컬러 셰이더 생성
-	m_ColorShader = new ColorShader;
-	if (!m_ColorShader)
+	m_TextureShader = new TextureShader;
+	if (!m_TextureShader)
 		return false;
 
-	//컬러 셰이더 초기화
-	result = m_ColorShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+	//텍스쳐 셰이더 오브젝트 초기화
+	result = m_TextureShader->Initialize(m_Direct3D->GetDevice(), hwnd);
 	if (!result)
 	{
-		MessageBox(hwnd, L"Could not initialize the color shader object", L"Error", MB_OK);
-		return false;
+		MessageBox(hwnd, L"Could not initialize the texture shader object", L"Error", MB_OK);
+		return false;	
 	}
+
+
+
+	////컬러 셰이더 생성
+	//m_ColorShader = new ColorShader;
+	//if (!m_ColorShader)
+	//	return false;
+
+	////컬러 셰이더 초기화
+	//result = m_ColorShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+	//if (!result)
+	//{
+	//	MessageBox(hwnd, L"Could not initialize the color shader object", L"Error", MB_OK);
+	//	return false;
+	//}
 
 	return true;
 }
@@ -97,11 +111,18 @@ void Graphic::Shutdown()
 		m_Camera = nullptr;
 	}
 
-	if (m_ColorShader)
+	//if (m_ColorShader)
+	//{
+	//	m_ColorShader->Shutdown();
+	//	delete m_ColorShader;
+	//	m_ColorShader = nullptr;
+	//}
+
+	if (m_TextureShader)
 	{
-		m_ColorShader->Shutdown();
-		delete m_ColorShader;
-		m_ColorShader = nullptr;
+		m_TextureShader->ShutDown();
+		delete m_TextureShader;
+		m_TextureShader = nullptr;
 	}
 
 }
@@ -136,9 +157,14 @@ bool Graphic::Render()
 
 	m_Model->Render(m_Direct3D->GetDeviceContext());
 
-	result = m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix);
+	/*result = m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix);
 	if (!(result))
-		return false;
+		return false;*/
+
+	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,m_Model->GetTexture());
+	if (!(result))
+		return false; 
+
 
 	//버퍼의 내용을 화면에 출력
 	m_Direct3D->EndScene();

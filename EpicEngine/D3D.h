@@ -1,6 +1,7 @@
 #pragma once
 
-/*Direct 3D 11 을 초기화 하는 클래스*/
+/*Direct 3D 11 을 초기화 하는 클래스 , 렌더링을 담당하는 Graphic 클래스 안에서 Directx 부분을 맡음*/
+
 class D3D
 {
 public:
