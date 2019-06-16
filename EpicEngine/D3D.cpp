@@ -31,6 +31,8 @@ bool D3D::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hwnd, b
 	if (FAILED(CreateDXGIFactory(_uuidof(IDXGIFactory), (void**)& factory)))
 		return false;
 
+	//factory->MakeWindowAssociation(hwnd, 0);
+
 	//팩토리 객체를 사용해 첫번째 그래픽 카드 인터페이스 어댑터를 생성합니다.
 	IDXGIAdapter* adapter = nullptr;
 	if (FAILED(factory->EnumAdapters(0, &adapter)))

@@ -79,8 +79,8 @@ bool Model::InitializeBuffers(ID3D11Device* device)
 	HRESULT result;
 	
 	//정점,인덱스 배열의 길이를 설정합니다.
-	m_vertexCount = 3;
-	m_indexCount = 3;
+	m_vertexCount = 4;
+	m_indexCount = 6;
 
 	//정점 배열을 생성합니다.
 	vertices = new VertexType[m_vertexCount];
@@ -94,22 +94,29 @@ bool Model::InitializeBuffers(ID3D11Device* device)
 		return false;
 
 	/* 정점 배열에 값을 넣습니다. */
-	vertices[0].position = D3DXVECTOR3(-1.0f, -1.0f, 0.0f); //왼쪽 아래
-	vertices[0].texture = D3DXVECTOR2(0.0f, 1.0f);
+	vertices[0].position = D3DXVECTOR3(-1.0f, 1.0f, 0.0f); //왼쪽 위
+	vertices[0].texture = D3DXVECTOR2(0.0f, 0.0f);
 	//vertices[0].color = D3DXVECTOR4(0.0f, 1.0f, 0.0f, 1.0f);	
 
-	vertices[1].position = D3DXVECTOR3(0.0f, 1.0f, 0.0f); //상단 가운데
-	vertices[1].texture = D3DXVECTOR2(0.5f, 0.0f);
+	vertices[1].position = D3DXVECTOR3(1.0f, 1.0f, 0.0f); //오른쪽 위
+	vertices[1].texture = D3DXVECTOR2(1.0f, 0.0f);
 	//vertices[1].color = D3DXVECTOR4(0.0f, 1.0f, 0.0f, 1.0f);
 
-	vertices[2].position = D3DXVECTOR3(1.0f, -1.0f, 0.0f); //오른쪽 아래
-	vertices[2].texture = D3DXVECTOR2(1.0f, 1.0f);
+	vertices[2].position = D3DXVECTOR3(-1.0f, -1.0f, 0.0f); //아래 왼쪽
+	vertices[2].texture = D3DXVECTOR2(0.0f, 1.0f);
+	//vertices[2].color = D3DXVECTOR4(0.0f, 1.0f, 0.0f, 1.0f);	
+
+	vertices[3].position = D3DXVECTOR3(1.0f, -1.0f, 0.0f); //아래 오른쪽
+	vertices[3].texture = D3DXVECTOR2(1.0f, 1.0f);
 	//vertices[2].color = D3DXVECTOR4(0.0f, 1.0f, 0.0f, 1.0f);
 
 	/* 인덱스 배열에 값을 넣습니다.*/
-	indices[0] = 0; //왼쪽 아래
-	indices[1] = 1; //상단 가운데
-	indices[2] = 2; //오른쪽 아래
+	indices[0] = 2; //
+	indices[1] = 0; //
+	indices[2] = 1; //
+	indices[3] = 2; //
+	indices[4] = 1; //
+	indices[5] = 3; //
 
 	//정점 버퍼의 description을 작성합니다.
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
