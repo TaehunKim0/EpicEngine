@@ -17,12 +17,25 @@ private:
 		D3DXMATRIX projection;
 	};
 
+	/*
+	LightBufferType 구조체는 픽셀 셰이더의 상수 버퍼와 마찬가지로 반사광의 색상과 강도를 저장하도록 바뀌었습니다. 
+	주의해야 할 것은 기존의 16바이트의 배수 크기를 유지하기 위한 padding을 없애고 그 자리에 specularPower을 넣었다는 사실입니다. 
+	만약 padding을 넣지 않고 lightDirection 바로 밑에 specularColor을 넣었다면 셰이더가 올바로 동작하지 않았을 것입니다. 
+	구조체의 크기가 16byte의 배수이긴 하지만 각 변수들이 16byte로 정렬되지 않았기 때문입니다.
+	*/
 	struct LightBufferType
 	{
 		D3DXVECTOR4 ambientColor;
 		D3DXVECTOR4 diffuseColor;
 		D3DXVECTOR3 lightDirection;
-		float padding; // 나중에 CreateBuffer를 할 때 버퍼가 16바이트의 배수가 되어야 하므로 padding이라는 더미 변수를 넣었다. //28byte -> 32byte
+		float specularPower;
+		D3DXVECTOR4 specularColor;
+	};
+
+	struct CameraBufferType //새로운 카메라 버퍼 구조체를 만듭니다
+	{
+		D3DXVECTOR3 cameraPosition;
+		float padding;
 	};
 
 
@@ -33,14 +46,14 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void ShutDown();
-	bool Render(ID3D11DeviceContext*, int, D3DXMATRIX, D3DXMATRIX, D3DXMATRIX, ID3D11ShaderResourceView*, D3DXVECTOR3, D3DXVECTOR4, D3DXVECTOR4);
+	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor, D3DXVECTOR3 cameraPosition, D3DXVECTOR4 specularColor, float specularPower);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
-	bool SetShaderParameters(ID3D11DeviceContext*, D3DXMATRIX, D3DXMATRIX, D3DXMATRIX, ID3D11ShaderResourceView*, D3DXVECTOR3, D3DXVECTOR4, D3DXVECTOR4);
+	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor, D3DXVECTOR3 cameraPosition, D3DXVECTOR4 specularColor, float specularPower);
 	void RenderShader(ID3D11DeviceContext*, int);
 
 private:
@@ -48,6 +61,7 @@ private:
 	ID3D11PixelShader* m_pixelShader;
 	ID3D11InputLayout* m_layout;
 	ID3D11Buffer* m_matrixBuffer;
+	ID3D11Buffer* m_cameraBuffer;
 	ID3D11Buffer* m_lightBuffer;
 
 	ID3D11SamplerState* m_sampleState;

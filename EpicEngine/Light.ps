@@ -4,16 +4,22 @@ SamplerState SampleType;
 cbuffer LightBuffer
 {
 	float4 ambientColor;
-	float4 diffuseColor; //조명의 색
-	float3 lightDirection; //조명의 방향
-	float padding;
+	float4 diffuseColor; //조명 색
+    float3 lightDirection;//조명 방향
+    float specularPower;
+    float4 specularColor;
 };
 
+
+//////////////
+// TYPEDEFS //
+//////////////
 struct PixelInputType
 {
-	float4 position : SV_POSITION;
-	float2 tex : TEXCOORD0; //
-	float3 normal : NORMAL;	
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD0;
+	float3 normal : NORMAL;
+	float3 viewDirection : TEXCOORD1;
 };
 
 float4 LightPixelShader(PixelInputType input) : SV_TARGET
@@ -22,7 +28,8 @@ float4 LightPixelShader(PixelInputType input) : SV_TARGET
 	float3 lightDir;
 	float lightIntensity;
 	float4 color;
-
+	float3 reflection;
+    float4 specular;
 
 	// 이 텍스쳐 좌표 위치에서 샘플링을 사용하여 텍스쳐의 픽셀 색상을 샘플링한다.
 	textureColor = shaderTexture.Sample(SampleType, input.tex);
@@ -30,8 +37,10 @@ float4 LightPixelShader(PixelInputType input) : SV_TARGET
 	//결과의 색상값을 기본으로 주변광 값으로 맞춥니다. 이제 모든 픽셀들은 최소한 주변광 값을 가지게 됩니다.
 	color = ambientColor;
 
+	specular = float4(0.0f, 0.0f, 0.0f, 0.0f);
+
 	//계산을 위해 조명 방향을 반전시킨다. //벡터끼리 화살표의 밑동이 만나야 하기 때문
-    lightDir = -lightDirection;
+	lightDir = -lightDirection;
 
     //이 픽셀의 빛의 양을 계산한다.
     lightIntensity = saturate(dot(input.normal, lightDir));
@@ -40,15 +49,33 @@ float4 LightPixelShader(PixelInputType input) : SV_TARGET
 	//만약 그렇다면 조명값을 주변광에 더하고, 그렇지 않다면 조명값을 더하지않도록 해야 합니다.
     if(lightIntensity > 0.0f) // 법선과 빛의 방향의 내적이 0보다 큰지 확인해 봅니다.
 	{
-		color = saturate(diffuseColor * lightIntensity);
+		color += (diffuseColor * lightIntensity);
+
+		//계산된 빛의 세기가 텍스쳐 픽셀값과 조합되어 최종 색상을 만들어 냄.
+		//주변광과 조명의 조합의 결과가 1이 넘을 수 있으므로 saturate 함수로 최종 색상이 적절한 값이 되도록 잘라냅니다.
+		color = saturate(color);
+
+		
+		//픽셀 셰이더에서의 정반사 벡터는 주어진 빛의 강도 큰 경우에만 여기서 계산됨.
+		//스펙큘러 방정식 사용
+		//광도, 일반 벡터 및 광 방향을 기준으로 반사 벡터를 계산한다.
+		reflection = normalize(2 * lightIntensity * input.normal - lightDir); 
+
+		//정반사광의 총량은 반사벡터와 보는 방향을 이용하여 계산됩니다.
+		//광원과 카메라의 방향 사이의 각도가 작을수록 더 많은 정반사광이 비쳐 들어올 것입니다.
+		//그런 결과는 specularPower 값만큼의 제곱으로	나타내게 합니다.
+		//specularPower 값이 작을수록 마지막에 빛이 더 많이 들어옴
+
+		specular = pow(saturate(dot(reflection, input.viewDirection)), specularPower);
+
 	}
-   	//계산된 빛의 세기가 텍스쳐 픽셀값과 조합되어 최종 색상을 만들어 냄.
-
-	//주변광과 조명의 조합의 결과가 1이 넘을 수 있으므로 saturate 함수로 최종 색상이 적절한 값이 되도록 잘라냅니다.
-	color = saturate(color);
-
+	
 	// 텍스처 픽셀과 최종 확산 색상을 곱하여 최종 픽셀 색상을 구한다. 
-    color = color * textureColor; //주석 처리하면 텍스쳐의 색상은 보이지 않게 된다.
+	color = color * textureColor; //주석 처리하면 텍스쳐의 색상은 보이지 않게 된다.
+
+	//정반사 효과는 마지막에 넣어야 하며, 그렇게 처리되지 않으면 제대로 표시되지 않음.
+	color = saturate(color + specular);
 
     return color;
+
 }

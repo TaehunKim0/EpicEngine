@@ -14,7 +14,6 @@ cbuffer CameraBuffer
 	float3 cameraPosition;
 	float padding;
 };
-//여기까지 함
 
 //Typedef
 struct VertexInputType
@@ -36,6 +35,7 @@ struct PixelInputType
 PixelInputType LightVertexShader(VertexInputType input)
 {
 	PixelInputType output;
+	float4 worldPosition;
 
 	// 적절한 행렬 계산을 위해 위치 벡터를 4 단위로 변경하십시오.
 	input.position.w = 1.0f;
@@ -50,7 +50,16 @@ PixelInputType LightVertexShader(VertexInputType input)
 
 	//월드 매트릭스에 대해서만 정규 벡터를 계산하십시오
 	output.normal = mul(input.normal, (float3x3)worldMatrix);
+
 	output.normal = normalize(output.normal); //법선벡터 계산
+
+	//월드에서 버텍스 위치 계산
+	worldPosition = mul(input.position, worldMatrix);
+
+	//카메라의 위치와 세계의 정점 위치를 기준으로 시야 방향을 결정한다.
+	output.viewDirection = cameraPosition.xyz - worldPosition.xyz;
+
+	output.viewDirection = normalize(output.viewDirection);
 
 	return output;
 }
