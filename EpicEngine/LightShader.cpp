@@ -1,33 +1,33 @@
 #include "stdafx.h"
-#include "TextureShader.h"
+#include "LightShader.h"
 
-
-TextureShader::TextureShader()
+LightShader::LightShader()
 {
 	m_vertexShader = nullptr;
 	m_pixelShader = nullptr;
 	m_layout = nullptr;
 	m_matrixBuffer = nullptr;
 	m_sampleState = nullptr;
+	m_lightBuffer = nullptr;
 }
 
-TextureShader::TextureShader(const TextureShader& other) : TextureShader()
+LightShader::LightShader(const LightShader& other) : LightShader()
 {
 }
 
 
-TextureShader::~TextureShader()
+LightShader::~LightShader()
 {
 }
 
-bool TextureShader::Initialize(ID3D11Device* device, HWND hwnd)
+bool LightShader::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
 
-	const WCHAR* pwcsName = L"../EpicEngine/texture.vs";
+	const WCHAR* pwcsName = L"../EpicEngine/Light.vs";
 	wchar_t* tempWide = const_cast <wchar_t*> (pwcsName);
-	
-	const WCHAR* pwcsName2 = L"../EpicEngine/texture.ps";
+
+	const WCHAR* pwcsName2 = L"../EpicEngine/Light.ps";
 	wchar_t* tempWide2 = const_cast <wchar_t*> (pwcsName2);
 
 	//버텍스와 픽셀 셰이더 초기화
@@ -38,16 +38,16 @@ bool TextureShader::Initialize(ID3D11Device* device, HWND hwnd)
 	return true;
 }
 
-void TextureShader::ShutDown()
+void LightShader::ShutDown()
 {
 	ShutdownShader();
 }
 
-bool TextureShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
+bool LightShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor)
 {
 	bool result;
 
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture);
+	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture, lightDirection, ambientColor, diffuseColor);
 	if (!result)
 		return false;
 
@@ -58,16 +58,17 @@ bool TextureShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D
 }
 
 //정점 셰이더와 픽셀 셰이더에 새 텍스쳐를 불러옵니다.
-bool TextureShader::InitializeShader(ID3D11Device* device, HWND	hwnd, WCHAR* vsFilename, WCHAR* psFilename)
-{	
+bool LightShader::InitializeShader(ID3D11Device* device, HWND	hwnd, WCHAR* vsFilename, WCHAR* psFilename)
+{
 	HRESULT result;
 	ID3D10Blob* errorMessage; //이 인터페이스는 임의의 길이의 데이터를 반환하는 데 사용됩니다.(ID3D10Blob)
 	ID3D10Blob* vertexShaderBuffer;
 	ID3D10Blob* pixelShaderBuffer;
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
 	unsigned int numElements;
 	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_SAMPLER_DESC samplerDesc;
+	D3D11_BUFFER_DESC lightBufferDesc;
 
 	//초기화
 	errorMessage = nullptr;
@@ -75,9 +76,9 @@ bool TextureShader::InitializeShader(ID3D11Device* device, HWND	hwnd, WCHAR* vsF
 	pixelShaderBuffer = nullptr;
 
 	//버텍스 셰이더 컴파일
-	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "TextureVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS,
-		0, NULL, &vertexShaderBuffer, &errorMessage, NULL);
-		
+	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "LightVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL,
+		&vertexShaderBuffer, &errorMessage, NULL);
+
 	if (FAILED(result))
 	{
 		if (errorMessage)
@@ -92,7 +93,7 @@ bool TextureShader::InitializeShader(ID3D11Device* device, HWND	hwnd, WCHAR* vsF
 		return false;
 	}
 
-	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "TexturePixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS,
+	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "LightPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS,
 		0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
 
 	if (FAILED(result))
@@ -142,6 +143,15 @@ bool TextureShader::InitializeShader(ID3D11Device* device, HWND	hwnd, WCHAR* vsF
 	polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[1].InstanceDataStepRate = 0;
 
+	polygonLayout[2].SemanticName = "NORMAL";
+	polygonLayout[2].SemanticIndex = 0;
+	polygonLayout[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[2].InputSlot = 0;
+	polygonLayout[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[2].InstanceDataStepRate = 0;
+
+
 	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
 	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &m_layout);
@@ -156,21 +166,8 @@ bool TextureShader::InitializeShader(ID3D11Device* device, HWND	hwnd, WCHAR* vsF
 	pixelShaderBuffer = nullptr;
 
 
-	//버텍스 쉐이더에있는 동적 매트릭스 상수 버퍼의 설명을 설정합니다.
-	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
-	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	matrixBufferDesc.MiscFlags = 0;
-	matrixBufferDesc.StructureByteStride = 0;
-
-	//이 클래스 내에서 정점 셰이더 상수 버퍼에 액세스 할 수 있도록 상수 버퍼 포인터를 만듭니다
-	result = device->CreateBuffer(&matrixBufferDesc, NULL, &m_matrixBuffer);
-	if (FAILED(result))
-		return false;
-
-	//텍스쳐 sampler state 생성
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	//텍스쳐 샘플러 상태 정의
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -184,14 +181,45 @@ bool TextureShader::InitializeShader(ID3D11Device* device, HWND	hwnd, WCHAR* vsF
 	samplerDesc.MinLOD = 0;
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
+	//텍스쳐 샘플러 생성
 	result = device->CreateSamplerState(&samplerDesc, &m_sampleState);
+	if (FAILED(result))
+		return false;
+
+	//정점 셰이더에 있는 동적 매트릭스 상수 버퍼 설명 설정
+	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
+	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	matrixBufferDesc.MiscFlags = 0;
+	matrixBufferDesc.StructureByteStride = 0;
+
+	//이 클래스 내에서 정점 셰이더 상수 버퍼에 액세스할 수 있도록 상수 버퍼 포인터를 생성하십시오.
+	result = device->CreateBuffer(&matrixBufferDesc, NULL, &m_matrixBuffer);
+	if (FAILED(result))
+		return false;
+
+	//조명 상수 버퍼 설정
+	/*
+	조명의 색상과 방향을 다루는 조명 상수 버퍼의 description을 작성합니다. 특히 상수 버퍼의 크기가 16의 배수인지에 주의를 기울이세요. 만약 그렇지 않다면 구조의 마지막에16의 배수의 크기를 맞추도록 더미 변수를 넣어야 하며 그렇게 하지 않으면 CreateBuffer 함수가 실패할 것입니다.
+	*/
+
+	lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	lightBufferDesc.ByteWidth = sizeof(LightBufferType);
+	lightBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	lightBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	lightBufferDesc.MiscFlags = 0;
+	lightBufferDesc.StructureByteStride = 0;
+
+	//조명 상수 버퍼 생성
+	result = device->CreateBuffer(&lightBufferDesc, NULL, &m_lightBuffer);
 	if (FAILED(result))
 		return false;
 
 	return true;
 }
 
-void TextureShader::ShutdownShader()
+void LightShader::ShutdownShader()
 {
 	if (m_sampleState)
 	{
@@ -223,10 +251,16 @@ void TextureShader::ShutdownShader()
 		m_vertexShader = nullptr;
 	}
 
+	if (m_lightBuffer)
+	{
+		m_lightBuffer->Release();
+		m_lightBuffer = nullptr;
+	}
+
 
 }
 
-void TextureShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
+void LightShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
 {
 	char* compileError;
 	unsigned long bufferSize, i;
@@ -254,12 +288,13 @@ void TextureShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd
 //SetShaderParameters 함수는 이제 텍스쳐 자원의 포인터를 인자로 받고 그것을 셰이더에 등록합니다.
 //참고로 텍스쳐는 반드시 버퍼에 렌더링이 일어나기 전에 설정되어 있어야 합니다.
 
-bool TextureShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
+bool LightShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	MatrixBufferType* dataPtr;
 	unsigned int bufferNumber;
+	MatrixBufferType* dataPtr;
+	LightBufferType* dataPtr2;
 
 	//행렬을 변환하여 셰이더 준비
 	D3DXMatrixTranspose(&worldMatrix, &worldMatrix);
@@ -268,7 +303,6 @@ bool TextureShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DX
 
 	//상수 버퍼를 잠가 쓸 수 있도록 함
 	result = deviceContext->Map(m_matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-
 	if (FAILED(result))
 		return false;
 
@@ -292,10 +326,33 @@ bool TextureShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DX
 	//픽셀 셰이더에서 쉐이더 텍스쳐 리소스를 설정
 	deviceContext->PSSetShaderResources(0, 1, &texture);
 
+	/*조명 버퍼*/
+	result = deviceContext->Map(m_lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))
+		return false;
+
+	//상수버퍼에서 데이터에 대한 포인터를 가져옴
+	dataPtr2 = (LightBufferType*)mappedResource.pData;
+
+	//상수 버퍼에 행렬 복사
+	dataPtr2->ambientColor = ambientColor;
+	dataPtr2->diffuseColor = diffuseColor;
+	dataPtr2->lightDirection = lightDirection;
+	dataPtr2->padding = 0.0f;
+
+	//상수 버퍼 해제
+	deviceContext->Unmap(m_lightBuffer, 0);
+
+	//정점 셰이더에 있는 상수 버퍼의 위치를 설정
+	bufferNumber = 0;
+
+	//이제 업데이트된 값으로 픽셀 셰이더에서 상수 버퍼를 설정
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_lightBuffer);
+
 	return true;
 }
 
-void TextureShader::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
+void LightShader::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
 {
 	//버텍스 입력 레이아웃 설정
 	deviceContext->IASetInputLayout(m_layout);

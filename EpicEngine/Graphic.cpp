@@ -8,7 +8,8 @@ Graphic::Graphic()
 	m_Camera = nullptr;
 	m_Model = nullptr;
 	//m_ColorShader = nullptr;
-	m_TextureShader = nullptr;
+	m_LightShader = nullptr;
+	m_Light = nullptr;
 }
 
 Graphic::Graphic(const Graphic& other) : Graphic()
@@ -52,25 +53,32 @@ bool Graphic::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	wchar_t* tempWide = const_cast <wchar_t*> (pwcsName);
 
 	//모델 오브젝트 초기화
-	result = m_Model->Initialize(m_Direct3D->GetDevice(), tempWide);
+	result = m_Model->Initialize(m_Direct3D->GetDevice(), "../EpicEngine/data/cube.txt", tempWide);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object", L"Error", MB_OK);
 		return false;
 	}
 
-	m_TextureShader = new TextureShader;
-	if (!m_TextureShader)
+	m_LightShader = new LightShader;
+	if (!m_LightShader)
 		return false;
 
 	//텍스쳐 셰이더 오브젝트 초기화
-	result = m_TextureShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+	result = m_LightShader->Initialize(m_Direct3D->GetDevice(), hwnd);
 	if (!result)
 	{
-		MessageBox(hwnd, L"Could not initialize the texture shader object", L"Error", MB_OK);
-		return false;	
+		MessageBox(hwnd, L"Could not initialize the light shader object", L"Error", MB_OK);
+		return false;
 	}
 
+	m_Light = new Light();
+	if (!m_Light)
+		return false;
+
+	m_Light->SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
+	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+	m_Light->SetDirection(0.0f, 0.0f, 1.0f);
 
 
 	////컬러 셰이더 생성
@@ -118,11 +126,17 @@ void Graphic::Shutdown()
 	//	m_ColorShader = nullptr;
 	//}
 
-	if (m_TextureShader)
+	if (m_LightShader)
 	{
-		m_TextureShader->ShutDown();
-		delete m_TextureShader;
-		m_TextureShader = nullptr;
+		m_LightShader->ShutDown();
+		delete m_LightShader;
+		m_LightShader = nullptr;
+	}
+
+	if (m_Light)
+	{
+		delete m_Light;
+		m_Light = nullptr;
 	}
 
 }
@@ -131,29 +145,38 @@ bool Graphic::Frame()
 {
 	bool result;
 
+	static float rotation = 0.0f;
+
+	rotation += (float)D3DX_PI * 0.005f;
+	if (rotation > 360.f)
+		rotation -= 360.f;
+
 	//그래픽 씬 렌더
-	result = Render();
+	result = Render(rotation);
 	if (!result)
 		return false;
 
 	return true;
 }
 
-bool Graphic::Render()
+bool Graphic::Render(float rotation)
 {
 	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix;
 	bool result;
 
 	//씬을 그리기 위해 버퍼를 초기화
-	m_Direct3D->BeginScene(0.5f,0.5f,0.5f,1.0f);
-	
+	m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+
 	//카메라의 위치를 토대로 뷰 행렬을 만들기 위해 카메라의 Render 함수를 호출합니다. 
 	m_Camera->Render();
-	
+
 	//카메라 및 d3d 객체에서 세계, 보기 및 투영 행렬을 가져옵니다
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_Direct3D->GetWorldMatrix(worldMatrix);
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+
+	//월드를 돌려서 삼각형 확인
+	D3DXMatrixRotationY(&worldMatrix, rotation);
 
 	m_Model->Render(m_Direct3D->GetDeviceContext());
 
@@ -161,9 +184,10 @@ bool Graphic::Render()
 	if (!(result))
 		return false;*/
 
-	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,m_Model->GetTexture());
+	result = m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix,
+		projectionMatrix, m_Model->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor());
 	if (!(result))
-		return false; 
+		return false;
 
 
 	//버퍼의 내용을 화면에 출력

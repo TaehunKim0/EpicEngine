@@ -5,7 +5,8 @@
 #include "D3D.h"
 #include "Camera.h"
 #include "Model.h"
-#include "TextureShader.h"
+#include "LightShader.h"
+#include "Light.h"
 
 /*D3D 클래스를 초기화하고 정리하는 코드*/
 //BeginScene EndScene 를 호출해 Direct3D를 사용하여 그리는 부분
@@ -29,14 +30,15 @@ public:
 	bool Frame();
 
 private:
-	bool Render();
+	bool Render(float rotation);
 
 private:
 	D3D* m_Direct3D;
 	Camera* m_Camera;
 	Model* m_Model;
 	//ColorShader* m_ColorShader;
-	TextureShader* m_TextureShader;
+	LightShader* m_LightShader;
+	Light* m_Light;
 };
 
 #endif // !_GRAPHIC_H_

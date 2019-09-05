@@ -1,5 +1,5 @@
+#include "stdafx.h"
 #include "Model.h"
-
 
 
 Model::Model()
@@ -7,6 +7,7 @@ Model::Model()
 	m_vertexBuffer = nullptr;
 	m_indexBuffer = nullptr;
 	m_Texture = nullptr;
+	m_Model = nullptr;
 }
 
 Model::Model(const Model& other) : Model()
@@ -18,9 +19,13 @@ Model::~Model()
 {
 }
 
-bool Model::Initialize(ID3D11Device* device, WCHAR* textureFileName)
+bool Model::Initialize(ID3D11Device* device, char* modelFilename, WCHAR* textureFileName)
 {
 	bool result;
+
+	result = LoadModel(modelFilename);
+	if (!result)
+		return false;
 
 	//정점 버퍼와 인덱스 버퍼 초기화
 	result = InitializeBuffers(device);
@@ -40,6 +45,9 @@ void Model::Shutdown()
 	ReleaseTexture();
 	//정점과 인덱스 버퍼 해제.
 	ShutdownBuffers();
+	//모델 해제
+	ReleaseModel();
+
 	return;
 }
 
@@ -77,10 +85,12 @@ bool Model::InitializeBuffers(ID3D11Device* device)
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 
 	HRESULT result;
-	
-	//정점,인덱스 배열의 길이를 설정합니다.
-	m_vertexCount = 4;
-	m_indexCount = 6;
+	int i = 0;
+
+	/*
+	주의해야 할 것은, 앞으로는 더 이상 정점과 인덱스 수를 직접 설정하지 않는다는 것입니다.]
+	그 대신 우선 ModelClass::LoadModel을 호출하고 난 뒤에 정점과 인덱스 수를 가져온다는 것을 볼 수 있습니다.
+	*/
 
 	//정점 배열을 생성합니다.
 	vertices = new VertexType[m_vertexCount];
@@ -93,30 +103,21 @@ bool Model::InitializeBuffers(ID3D11Device* device)
 	if (!indices)
 		return false;
 
-	/* 정점 배열에 값을 넣습니다. */
-	vertices[0].position = D3DXVECTOR3(-1.0f, 1.0f, 0.0f); //왼쪽 위
-	vertices[0].texture = D3DXVECTOR2(0.0f, 0.0f);
-	//vertices[0].color = D3DXVECTOR4(0.0f, 1.0f, 0.0f, 1.0f);	
 
-	vertices[1].position = D3DXVECTOR3(1.0f, 1.0f, 0.0f); //오른쪽 위
-	vertices[1].texture = D3DXVECTOR2(1.0f, 0.0f);
-	//vertices[1].color = D3DXVECTOR4(0.0f, 1.0f, 0.0f, 1.0f);
+	/*
+	정점과 인덱스 배열을 불러오는 것 역시 조금 바뀌었습니다.
+	직접 그 값을 넣어주는 대신, for 루프를 돌면서 m_model 배열에 있는 정보들을 정점 배열로 복사합니다.
+	인덱스 배열은 불러올 때 해당 배열에서의 위치가 곧 인덱스 번호이기 때문에 간단하게 지정할 수 있습니다.
+	*/
 
-	vertices[2].position = D3DXVECTOR3(-1.0f, -1.0f, 0.0f); //아래 왼쪽
-	vertices[2].texture = D3DXVECTOR2(0.0f, 1.0f);
-	//vertices[2].color = D3DXVECTOR4(0.0f, 1.0f, 0.0f, 1.0f);	
+	for (i = 0; i < m_vertexCount; i++)
+	{
+		vertices[i].position = D3DXVECTOR3(m_Model[i].x, m_Model[i].y, m_Model[i].z);
+		vertices[i].texture = D3DXVECTOR2(m_Model[i].tu, m_Model[i].tv);
+		vertices[i].normal = D3DXVECTOR3(m_Model[i].nx, m_Model[i].ny, m_Model[i].nz);
 
-	vertices[3].position = D3DXVECTOR3(1.0f, -1.0f, 0.0f); //아래 오른쪽
-	vertices[3].texture = D3DXVECTOR2(1.0f, 1.0f);
-	//vertices[2].color = D3DXVECTOR4(0.0f, 1.0f, 0.0f, 1.0f);
-
-	/* 인덱스 배열에 값을 넣습니다.*/
-	indices[0] = 2; //
-	indices[1] = 0; //
-	indices[2] = 1; //
-	indices[3] = 2; //
-	indices[4] = 1; //
-	indices[5] = 3; //
+		indices[i] = i;
+	}
 
 	//정점 버퍼의 description을 작성합니다.
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -170,7 +171,7 @@ void Model::ShutdownBuffers()
 		m_vertexBuffer->Release();
 		m_vertexBuffer = nullptr;
 	}
-	
+
 	if (m_indexBuffer)
 	{
 		m_indexBuffer->Release();
@@ -180,7 +181,7 @@ void Model::ShutdownBuffers()
 	return;
 }
 /*
-RenderBuffers 함수는 Render 함수에서 호출됩니다. 
+RenderBuffers 함수는 Render 함수에서 호출됩니다.
 이 함수의 목적은 바로 정점 버퍼와 인덱스 버퍼를 GPU의 어셈블러의 버퍼로서 활성화시키는 것입니다.
 
 일단 GPU가 활성화된 정점 버퍼를 가지게 되면 셰이더를 이용하여 버퍼의 내용을 그릴 수 있게 됩니다.
@@ -190,6 +191,7 @@ RenderBuffers 함수는 Render 함수에서 호출됩니다.
 이 튜토리얼에서는 어셈블러의 입력에 정점 버퍼와 인덱스 버퍼를 넣고 DirectX의 IASetPrimitiveTopology 함수를 사용하여
 GPU에게 이 정점들을 삼각형으로 그리도록 주문합니다.
 */
+
 void Model::RenderBuffers(ID3D11DeviceContext* deviceContext)
 {
 	unsigned int stride;
@@ -233,5 +235,72 @@ void Model::ReleaseTexture()
 		m_Texture->ShutDown();
 		delete m_Texture;
 		m_Texture = nullptr;
+	}
+}
+
+bool Model::LoadModel(char* fileName)
+{
+	std::ifstream fin;
+	char input;
+	int i;
+
+
+	//모델 파일 오픈
+	fin.open(fileName);
+
+	if (fin.fail())
+	{
+		return false;
+	}
+
+	//정점 카운트 수 읽기
+	fin.get(input);
+	while (input != ':')
+	{
+		fin.get(input);
+	}
+
+	//정점 수 읽기
+	fin >> m_vertexCount;
+
+	//인덱스 수를 정점 수와 같게 설정
+	m_indexCount = m_vertexCount;
+
+	//읽은 정점 카운트를 사용하여 모델을 생성하십시오.
+	m_Model = new ModelType[m_vertexCount];
+	if (!m_Model)
+	{
+		return false;
+	}
+
+	//데이터 시작 부분까지 읽기
+	fin.get(input);
+	while (input != ':')
+	{
+		fin.get(input);
+	}
+	fin.get(input);
+	fin.get(input);
+
+	//버텍스 데이터 읽기
+	for (i = 0; i < m_vertexCount; i++)
+	{
+		fin >> m_Model[i].x >> m_Model[i].y >> m_Model[i].z;
+		fin >> m_Model[i].tu >> m_Model[i].tv;
+		fin >> m_Model[i].nx >> m_Model[i].ny >> m_Model[i].nz;
+	}
+
+	//모델 파일 닫음
+	fin.close();
+
+	return true;
+}
+
+void Model::ReleaseModel()
+{
+	if (m_Model)
+	{
+		delete[] m_Model;
+		m_Model = nullptr;
 	}
 }

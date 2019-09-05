@@ -1,0 +1,54 @@
+Texture2D shaderTexture;
+SamplerState SampleType;
+
+cbuffer LightBuffer
+{
+	float4 ambientColor;
+	float4 diffuseColor; //조명의 색
+	float3 lightDirection; //조명의 방향
+	float padding;
+};
+
+struct PixelInputType
+{
+	float4 position : SV_POSITION;
+	float2 tex : TEXCOORD0; //
+	float3 normal : NORMAL;	
+};
+
+float4 LightPixelShader(PixelInputType input) : SV_TARGET
+{
+	float4 textureColor;
+	float3 lightDir;
+	float lightIntensity;
+	float4 color;
+
+
+	// 이 텍스쳐 좌표 위치에서 샘플링을 사용하여 텍스쳐의 픽셀 색상을 샘플링한다.
+	textureColor = shaderTexture.Sample(SampleType, input.tex);
+
+	//결과의 색상값을 기본으로 주변광 값으로 맞춥니다. 이제 모든 픽셀들은 최소한 주변광 값을 가지게 됩니다.
+	color = ambientColor;
+
+	//계산을 위해 조명 방향을 반전시킨다. //벡터끼리 화살표의 밑동이 만나야 하기 때문
+    lightDir = -lightDirection;
+
+    //이 픽셀의 빛의 양을 계산한다.
+    lightIntensity = saturate(dot(input.normal, lightDir));
+
+    //광도와 결합된 확산 색상을 기준으로 최종 확산 색상을 결정한다.
+	//만약 그렇다면 조명값을 주변광에 더하고, 그렇지 않다면 조명값을 더하지않도록 해야 합니다.
+    if(lightIntensity > 0.0f) // 법선과 빛의 방향의 내적이 0보다 큰지 확인해 봅니다.
+	{
+		color = saturate(diffuseColor * lightIntensity);
+	}
+   	//계산된 빛의 세기가 텍스쳐 픽셀값과 조합되어 최종 색상을 만들어 냄.
+
+	//주변광과 조명의 조합의 결과가 1이 넘을 수 있으므로 saturate 함수로 최종 색상이 적절한 값이 되도록 잘라냅니다.
+	color = saturate(color);
+
+	// 텍스처 픽셀과 최종 확산 색상을 곱하여 최종 픽셀 색상을 구한다. 
+    color = color * textureColor; //주석 처리하면 텍스쳐의 색상은 보이지 않게 된다.
+
+    return color;
+}

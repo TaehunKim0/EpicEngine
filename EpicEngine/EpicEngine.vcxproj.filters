@@ -30,6 +30,12 @@
     <ClInclude Include="TextureShader.h">
       <Filter>Shader</Filter>
     </ClInclude>
+    <ClInclude Include="LightShader.h">
+      <Filter>Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -61,6 +67,12 @@
     <ClCompile Include="TextureShader.cpp">
       <Filter>Shader</Filter>
     </ClCompile>
+    <ClCompile Include="LightShader.cpp">
+      <Filter>Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="System">
@@ -84,6 +96,12 @@
       <Filter>Shader</Filter>
     </None>
     <None Include="texture.ps">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Light.vs">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Light.ps">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>

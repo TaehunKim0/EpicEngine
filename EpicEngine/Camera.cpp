@@ -71,6 +71,8 @@ void Camera::Render()
 	D3DXVec3TransformCoord(&lookAt, &lookAt, &rotationMatrix);
 	D3DXVec3TransformCoord(&up, &up, &rotationMatrix);
 
+	//D3DXVec3TransformCoord : 벡터 변환을 위한 함수 , 벡터에 행렬을 곱해서 행렬이 적용된 포인터 또는 벡터를 반환
+
 	//회전 된 카메라 위치를 뷰어 위치로 변환합니다.
 	lookAt = position + lookAt;
 
