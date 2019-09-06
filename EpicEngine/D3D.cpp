@@ -11,6 +11,7 @@ D3D::D3D()
 	m_deviceContext = nullptr;
 	m_rasterState = nullptr;
 	m_renderTargetView = nullptr;
+	m_depthDisabledStencilState = nullptr;
 }
 
 D3D::D3D(const D3D& other) : D3D()
@@ -297,6 +298,33 @@ bool D3D::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hwnd, b
 	//2D 렌더링을 위한 직교 투영 행렬을 만듭니다.
 	D3DXMatrixOrthoLH(&m_orthoMatrix, (float)screenWidth, (float)screenHeight, screenNear, screenDepth);
 
+	//깊이 스텐실 버퍼 초기화
+	D3D11_DEPTH_STENCIL_DESC depthDisabledStencilDesc;
+	ZeroMemory(&depthDisabledStencilDesc, sizeof(depthDisabledStencilDesc));
+
+	//여기서 깊이 스텐실 상태 변수의 description을 작성합니다. 
+	//새 변수 descripton은 DepthEnable이 2D 렌더링을 위해 false로 세팅됩니다.
+	depthDisabledStencilDesc.DepthEnable = false;
+	depthDisabledStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	depthDisabledStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	depthDisabledStencilDesc.StencilEnable = true;
+	depthDisabledStencilDesc.StencilReadMask = 0xFF;
+	depthDisabledStencilDesc.StencilWriteMask = 0xFF;
+	depthDisabledStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	depthDisabledStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+	depthDisabledStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	depthDisabledStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	depthDisabledStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	depthDisabledStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR; 
+	depthDisabledStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP; 
+	depthDisabledStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+	HRESULT result;
+	result = m_device->CreateDepthStencilState(&depthStencilDesc, &m_depthDisabledStencilState);
+
+	if (FAILED(result))
+		return false;
+
 	return true;
 }
 
@@ -309,6 +337,12 @@ void D3D::Shutdown()
 	{
 		m_rasterState->Release();
 		m_rasterState = nullptr;
+	}
+
+	if (m_depthDisabledStencilState)
+	{
+		m_depthDisabledStencilState->Release();
+		m_depthDisabledStencilState = nullptr;
 	}
 
 	if (m_depthStencilView)
@@ -398,4 +432,21 @@ void D3D::GetVideoCardInfo(char* cardName, int& memory)
 {
 	strcpy_s(cardName, 128, m_videoCardDescription);
 	memory = m_videoCardMemory;
+}
+
+/*
+아래 두 함수들은 Z버퍼를 켜고 끄는 일을 합니다.
+Z버퍼를 켜는 것은 원래의 깊이 스텐실 상태를 사용합니다.
+그리고 Z버퍼를 끄는 것은 방금 depthEnable를 false로 설정한 새로운 깊이 스텐실 상태를 사용합니다. 
+일반적으로 3D 렌더링을 수행한 후에 Z버퍼를 끄고 2D 렌더링을 한 뒤 다시 Z버퍼를 키는 것이 가장 이상적입니다.
+*/
+
+void D3D::TurnZBufferOn()
+{
+	m_deviceContext->OMSetDepthStencilState(m_depthStencilState, 1);
+}
+
+void D3D::TurnZBufferOff()
+{
+	m_deviceContext->OMSetDepthStencilState(m_depthDisabledStencilState, 1);
 }

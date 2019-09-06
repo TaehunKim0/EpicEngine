@@ -7,6 +7,8 @@
 #include "Model.h"
 #include "LightShader.h"
 #include "Light.h"
+#include "Bitmap.h"
+#include "TextureShader.h"
 
 /*D3D 클래스를 초기화하고 정리하는 코드*/
 //BeginScene EndScene 를 호출해 Direct3D를 사용하여 그리는 부분
@@ -38,7 +40,9 @@ private:
 	Model* m_Model;
 	//ColorShader* m_ColorShader;
 	LightShader* m_LightShader;
+	TextureShader* m_TextureShader;
 	Light* m_Light;
+	Bitmap* m_Bitmap;
 };
 
 #endif // !_GRAPHIC_H_

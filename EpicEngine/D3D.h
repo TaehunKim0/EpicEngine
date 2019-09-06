@@ -8,7 +8,7 @@ public:
 	D3D();
 	D3D(const D3D& other);
 	~D3D();
-
+	
 	bool Initialize(int screenWidth, int screenHeight, bool vsync, HWND hwnd, bool fullscreen, float screenDepth, float screenNear);
 	void Shutdown();
 
@@ -23,6 +23,9 @@ public:
 	void GetOrthoMatrix(D3DXMATRIX& orthoMatrix);
 
 	void GetVideoCardInfo(char* cardName, int& memory);
+
+	void TurnZBufferOn();
+	void TurnZBufferOff();
 
 private:
 	bool m_vsync_enabled = false;
@@ -45,4 +48,5 @@ private:
 	D3DXMATRIX m_worldMatrix;
 	D3DXMATRIX m_orthoMatrix;
 
+	ID3D11DepthStencilState* m_depthDisabledStencilState; //±Ì¿Ã Ω∫≈ŸΩ« ªÛ≈¬ ∫Øºˆ
 };

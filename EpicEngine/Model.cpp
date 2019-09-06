@@ -19,7 +19,7 @@ Model::~Model()
 {
 }
 
-bool Model::Initialize(ID3D11Device* device, char* modelFilename, WCHAR* textureFileName)
+bool Model::Initialize(ID3D11Device* device, const char* modelFilename, WCHAR* textureFileName)
 {
 	bool result;
 
@@ -238,7 +238,7 @@ void Model::ReleaseTexture()
 	}
 }
 
-bool Model::LoadModel(char* fileName)
+bool Model::LoadModel(const  char* fileName)
 {
 	std::ifstream fin;
 	char input;

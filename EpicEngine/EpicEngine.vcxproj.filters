@@ -36,6 +36,9 @@
     <ClInclude Include="Light.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Bitmap.h">
+      <Filter>System</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -72,6 +75,9 @@
     </ClCompile>
     <ClCompile Include="Light.cpp">
       <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Bitmap.cpp">
+      <Filter>System</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
