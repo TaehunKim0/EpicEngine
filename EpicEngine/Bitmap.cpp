@@ -169,7 +169,6 @@ bool Bitmap::InitializeBuffers(ID3D11Device * device)
 		return false;
 	}
 
-출처: https://ppparkje.tistory.com/22?category=489719 [빠재의 노트]
 
 	//인덱스 버퍼의 내용은 정점의 위치가 바뀌어도 언제나 같은 여섯개의 정점을 가리키기 때문에
 	//인덱스 버퍼를 동적 버퍼로 만들지는 않습니다

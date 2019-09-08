@@ -99,7 +99,10 @@ bool Graphic::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	if (!m_Bitmap)
 		return false;
 
-	result = m_Bitmap->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, tempWide, 256, 256);
+	const WCHAR* pwcsName3 = L"../EpicEngine/data/black.png";
+	wchar_t* tempWide3 = const_cast <wchar_t*> (pwcsName3);
+
+	result = m_Bitmap->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, tempWide3, 256, 256);
 	if (!result)
 	{ 
 		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
@@ -227,7 +230,6 @@ bool Graphic::Render(float rotation)
 
 	if (!result)
 		return false;
-
 
 	//월드를 돌려서 확인
 	D3DXMatrixRotationY(&worldMatrix, rotation);
