@@ -18,7 +18,8 @@ private:
 	};
 
 	/*
-	LightBufferType 구조체는 픽셀 셰이더의 상수 버퍼와 마찬가지로 반사광의 색상과 강도를 저장하도록 바뀌었습니다. 
+	LightBufferType 구조체는 픽셀 셰이더의 
+	버퍼와 마찬가지로 반사광의 색상과 강도를 저장하도록 바뀌었습니다. 
 	주의해야 할 것은 기존의 16바이트의 배수 크기를 유지하기 위한 padding을 없애고 그 자리에 specularPower을 넣었다는 사실입니다. 
 	만약 padding을 넣지 않고 lightDirection 바로 밑에 specularColor을 넣었다면 셰이더가 올바로 동작하지 않았을 것입니다. 
 	구조체의 크기가 16byte의 배수이긴 하지만 각 변수들이 16byte로 정렬되지 않았기 때문입니다.

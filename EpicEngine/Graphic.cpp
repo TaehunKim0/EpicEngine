@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "Graphic.h"
-
+#include "Imgui/imgui.h"
+#include "Imgui/imgui_impl_dx11.h"
+#include "Imgui/imgui_impl_win32.h"
 
 Graphic::Graphic()
 {
@@ -12,6 +14,11 @@ Graphic::Graphic()
 	m_Light = nullptr;
 	m_Bitmap = nullptr;
 	m_TextureShader = nullptr;
+	m_Text = nullptr;
+
+	translationOffset[0] = 0.f;
+	translationOffset[1] = 0.f;
+	translationOffset[2] = -10.f;
 }
 
 Graphic::Graphic(const Graphic& other) : Graphic()
@@ -25,6 +32,7 @@ Graphic::~Graphic()
 bool Graphic::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 {
 	bool result;
+	D3DXMATRIX baseViewMatrix;
 
 	//Direct3D 객체 생성
 	m_Direct3D = (D3D*)_aligned_malloc(sizeof(D3D), 16);
@@ -42,6 +50,11 @@ bool Graphic::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	m_Camera = new Camera;
 	if (!m_Camera)
 		return false;
+
+	//카메라 객체로부터 새로운 뷰 행렬을 생성하여 Text가 사용하도록 합니다. 이를 통하여 글자가 항상 화면의 같은 위치에 그려지게 됩니다.
+	m_Camera->SetPosition(0.0f, 0.0f, -1.0f); 
+	m_Camera->Render();
+	m_Camera->GetViewMatrix(baseViewMatrix);
 
 	//카메라 포지션 설정
 	m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
@@ -102,25 +115,31 @@ bool Graphic::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	const WCHAR* pwcsName3 = L"../EpicEngine/data/black.png";
 	wchar_t* tempWide3 = const_cast <wchar_t*> (pwcsName3);
 
-	result = m_Bitmap->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, tempWide3, 256, 256);
+	result = m_Bitmap->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, tempWide3, 128, 128);
 	if (!result)
 	{ 
 		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
 		return false;
 	}
 
-	////컬러 셰이더 생성
-	//m_ColorShader = new ColorShader;
-	//if (!m_ColorShader)
-	//	return false;
+	 m_Text = new Text; 
+	 if(!m_Text)
+		 return false; 
+	 
+	 result = m_Text->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), hwnd, screenWidth, screenHeight, baseViewMatrix);
+	 if(!result)
+	 { 
+		 MessageBox(hwnd, L"Could not initialize the text object.", L"Error", MB_OK);
+		 return false;
+	 }
 
-	////컬러 셰이더 초기화
-	//result = m_ColorShader->Initialize(m_Direct3D->GetDevice(), hwnd);
-	//if (!result)
-	//{
-	//	MessageBox(hwnd, L"Could not initialize the color shader object", L"Error", MB_OK);
-	//	return false;
-	//}
+	 //setup imgui
+	 IMGUI_CHECKVERSION();
+	 ImGui::CreateContext();
+	 ImGuiIO& io = ImGui::GetIO();
+	 ImGui_ImplWin32_Init(hwnd);
+	 ImGui_ImplDX11_Init(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext());
+	 ImGui::StyleColorsDark();
 
 	return true;
 }
@@ -174,6 +193,12 @@ void Graphic::Shutdown()
 		m_Light = nullptr;
 	}
 
+	if (m_Text)
+	{
+		m_Text->Shutdown();
+		delete m_Text;
+		m_Text = nullptr;
+	}
 }
 
 bool Graphic::Frame()
@@ -192,6 +217,19 @@ bool Graphic::Frame()
 		return false;
 
 	return true;
+}
+
+bool Graphic::Frame(int mouseX, int mouseY)
+{
+	bool result;
+
+	result = m_Text->SetMousePosition(mouseX, mouseY, m_Direct3D->GetDevice());
+	if (!result)
+		return false;
+
+	//m_Camera->SetPosition(0.f, 0.f, -10.f);
+
+	return false;
 }
 
 bool Graphic::Render(float rotation)
@@ -216,9 +254,18 @@ bool Graphic::Render(float rotation)
 	//2D 렌더링을 시작하기 전에 Z버퍼를 끕니다.
 	m_Direct3D->TurnZBufferOff();
 
-	result = m_Bitmap->Render(m_Direct3D->GetDeviceContext(), 100, 100);
+	//텍스트와 배경이 조화롭게 그려지기 위해 알파 블렌딩을 켭니다.
+	m_Direct3D->TurnOnAlphaBlending();
+
+	//여기서 텍스트 객체의 render 함수를 호출하여 모든 문장들이 화면에 그려지도록 합니다. 
+	//그리고 2D 이미지의 경우와 마찬가지로 렌더링을 수행하기 전에 Z버퍼를 해제하고 다 그리면 Z버퍼를 켭니다.
+	result = m_Text->Render(m_Direct3D->GetDeviceContext(), worldMatrix, orthMatrix);
 	if (!result)
 		return false;
+
+	//result = m_Bitmap->Render(m_Direct3D->GetDeviceContext(), 100, 100);
+	//if (!result)
+	//	return false;
 
 	//일단 정점 / 인덱스 버퍼가 준비되었다면 텍스쳐 셰이더를 이용해 그리게 됩니다.
 	//2D 렌더링을 수행하기 위해 projectionMatrix 대신 orthoMatrix를 인자로 보냈다는 점을 주의하기 바랍니다.
@@ -247,7 +294,38 @@ bool Graphic::Render(float rotation)
 	if (!result)
 		return false;
 
+	//다시 알파블렌딩을 꺼서 그리는 물체 뒤에 뭔가 있을때 알파블렌딩 효과가 나오지 않게 합니다.
+	m_Direct3D->TurnOffAlphaBlending();
+
 	m_Direct3D->TurnZBufferOn();
+
+	static int counter = 0;
+
+	//Start the Dear ImGui frame
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+
+	ImGui::NewFrame();
+
+	ImGui::Begin("Test");
+	ImGui::Text("This is Example Text");
+
+	if (ImGui::Button("CLICK ME!"))
+		counter++;
+
+	ImGui::SameLine();
+	string clickCount = "CLICK Count : " + std::to_string(counter);
+	ImGui::Text(clickCount.c_str());
+	ImGui::DragFloat3("Translation X/Y/Z", translationOffset, 0.1f, -10.0f, 10.f);
+
+	static bool checked = true;
+	ImGui::Checkbox("checkbox", &checked);
+
+	ImGui::End();
+	ImGui::Render();
+
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	m_Camera->SetPosition(translationOffset[0], translationOffset[1], translationOffset[2]);
 
 	//버퍼의 내용을 화면에 출력
 	m_Direct3D->EndScene();

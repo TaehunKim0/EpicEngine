@@ -16,7 +16,6 @@ private:
 		D3DXVECTOR2 texture;
 	};
 
-
 public:
 	Bitmap();
 	Bitmap(const Bitmap&);

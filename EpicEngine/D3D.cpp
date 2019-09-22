@@ -12,6 +12,9 @@ D3D::D3D()
 	m_rasterState = nullptr;
 	m_renderTargetView = nullptr;
 	m_depthDisabledStencilState = nullptr;
+
+	m_alphaDisableBlendingState = nullptr;
+	m_alphaEnableBlendingState = nullptr;
 }
 
 D3D::D3D(const D3D& other) : D3D()
@@ -24,28 +27,38 @@ D3D::~D3D()
 
 bool D3D::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hwnd, bool fullscreen, float screenDepth, float screenNear)
 {
+	IDXGIFactory* factory = nullptr;
+	IDXGIAdapter* adapter = nullptr;
+	IDXGIOutput* adapterOutput = nullptr;
+	unsigned int numModes = 0;
+	DXGI_ADAPTER_DESC adapterDesc;
+	DXGI_SWAP_CHAIN_DESC swapChainDesc;
+	ID3D11Texture2D* backBufferPtr = nullptr; //2D 텍스쳐로써 백버퍼를 얻어오고 있다.
+	D3D11_RASTERIZER_DESC rasterDesc;
+	D3D11_TEXTURE2D_DESC depthBufferDesc;
+	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
+	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+	D3D11_VIEWPORT viewport;
+	D3D11_DEPTH_STENCIL_DESC depthDisabledStencilDesc;
+	D3D11_BLEND_DESC blendStateDescription;
+
 	//수직동기화 상태를 저장합니다.
 	m_vsync_enabled = vsync;
 
 	//DirectX 그래픽 인터페이스 팩토리를 생성합니다.
-	IDXGIFactory* factory = nullptr;
 	if (FAILED(CreateDXGIFactory(_uuidof(IDXGIFactory), (void**)& factory)))
 		return false;
 
-	//factory->MakeWindowAssociation(hwnd, 0);
 
 	//팩토리 객체를 사용해 첫번째 그래픽 카드 인터페이스 어댑터를 생성합니다.
-	IDXGIAdapter* adapter = nullptr;
 	if (FAILED(factory->EnumAdapters(0, &adapter)))
 		return false;
 
 	//출력(모니터)에 대한 첫번째 어댑터를 지정합니다.
-	IDXGIOutput* adapterOutput = nullptr;
 	if (FAILED(adapter->EnumOutputs(0, &adapterOutput)))
 		return false;
 
 	//출력 (모니터)에 대한 DXGI_FORMAT_R8G8B8A8_UNORM 표시 형식에 맞는 모드 수를 가져옵니다.
-	unsigned int numModes = 0;
 	if (FAILED(adapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED,
 		&numModes, NULL)))
 		return false;
@@ -79,7 +92,6 @@ bool D3D::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hwnd, b
 	}
 
 	//비디오카드의 구조체를 얻습니다.
-	DXGI_ADAPTER_DESC adapterDesc;
 	if (FAILED(adapter->GetDesc(&adapterDesc)))
 		return false;	
 
@@ -108,7 +120,6 @@ bool D3D::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hwnd, b
 	factory = 0;
 
 	//스왑체인 구조체를 초기화합니다.
-	DXGI_SWAP_CHAIN_DESC swapChainDesc;
 	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
 
 	//백버퍼를 1개만 사용하도록 지정합니다.
@@ -176,7 +187,6 @@ bool D3D::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hwnd, b
 	//그래서 스왑체인에서 백버퍼를 취하여 디바이스의 렌더타겟으로 설정해야 한다.
 
 	//GetBuffer로 백버퍼 포인터를 얻어올 수 있다.
-	ID3D11Texture2D* backBufferPtr = nullptr; //2D 텍스쳐로써 백버퍼를 얻어오고 있다.
 	if(FAILED(m_swapChain->GetBuffer(0, _uuidof(ID3D11Texture2D),(LPVOID*)&backBufferPtr)))
 		return false;
 
@@ -190,7 +200,6 @@ bool D3D::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hwnd, b
 	backBufferPtr = nullptr;
 
 	//깊이 버퍼 구조체를 초기화합니다
-	D3D11_TEXTURE2D_DESC depthBufferDesc;
 	ZeroMemory(&depthBufferDesc, sizeof(depthBufferDesc));
 
 	//깊이 버퍼 구조체를 작성합니다.
@@ -210,8 +219,7 @@ bool D3D::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hwnd, b
 	if (FAILED(m_device->CreateTexture2D(&depthBufferDesc, NULL, &m_depthStencilBuffer)))
 		return false;
 
-	//스텐실 상태 구조체를 초기화합니다.
-	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
+	//스텐실 상태 구조체를 초기화합니다.	
 	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
 
 	//스텐실 상태 구조체를 작성합니다.
@@ -238,7 +246,6 @@ bool D3D::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hwnd, b
 	m_deviceContext->OMSetDepthStencilState(m_depthStencilState, 1);
 
 	//깊이 스텐실 뷰의 구조체를 초기화합니다.
-	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
 	ZeroMemory(&depthStencilViewDesc, sizeof(depthStencilViewDesc));
 
 	//깊이 스텐실 구조체를 설정합니다.
@@ -254,7 +261,6 @@ bool D3D::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hwnd, b
 	m_deviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
 
 	//그려지는 폴리곤과 방법을 결정할 래스터 구조체를 설정합니다.
-	D3D11_RASTERIZER_DESC rasterDesc;
 	rasterDesc.AntialiasedLineEnable = false;
 	rasterDesc.CullMode = D3D11_CULL_BACK;
 	rasterDesc.DepthBias = 0;
@@ -274,7 +280,6 @@ bool D3D::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hwnd, b
 	m_deviceContext->RSSetState(m_rasterState);
 
 	//렌더링을 위해 뷰포트를 설정합니다.
-	D3D11_VIEWPORT viewport;
 	viewport.Width = (float)screenWidth;
 	viewport.Height = (float)screenHeight;
 	viewport.MinDepth = 0.0f;
@@ -299,7 +304,6 @@ bool D3D::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hwnd, b
 	D3DXMatrixOrthoLH(&m_orthoMatrix, (float)screenWidth, (float)screenHeight, screenNear, screenDepth);
 
 	//깊이 스텐실 버퍼 초기화
-	D3D11_DEPTH_STENCIL_DESC depthDisabledStencilDesc;
 	ZeroMemory(&depthDisabledStencilDesc, sizeof(depthDisabledStencilDesc));
 
 	//여기서 깊이 스텐실 상태 변수의 description을 작성합니다. 
@@ -325,6 +329,37 @@ bool D3D::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hwnd, b
 	if (FAILED(result))
 		return false;
 
+	//블렌딩 상태의 description 초기화
+	ZeroMemory(&blendStateDescription, sizeof(D3D11_BLEND_DESC));
+
+	//알파값이 적용된 블렌딩 상태를 만들기 위해 BlendEnable를 TRUE로 바꾸고 DestBlend를 D3D11_BLEND_INV_SRC_ALPHA로 설정합니다. 
+	//다른 설정들은 기본값으로 하는데 이 값들은 DirectX 그래픽스 문서에서 찾을 수 있습니다.
+	blendStateDescription.RenderTarget[0].BlendEnable = TRUE;
+	blendStateDescription.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	blendStateDescription.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	blendStateDescription.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blendStateDescription.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE; 
+	blendStateDescription.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	blendStateDescription.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD; 
+	blendStateDescription.RenderTarget[0].RenderTargetWriteMask = 0x0f;
+
+
+	// 그리고 나서 description을 이용하여 알파값이 켜진 블렌딩 상태를 생성합니다.
+	result = m_device->CreateBlendState(&blendStateDescription, &m_alphaEnableBlendingState);
+	if(FAILED(result)) 
+		return false; 
+
+
+	//알파값을 사용하지 않는 상태를 만들기 위해서 BlendEnable를 FALSE로 설정합니다.나머지는 바꾸지 않습니다.
+	blendStateDescription.RenderTarget[0].BlendEnable = FALSE;
+
+	//바뀐 description을 사용하여 알파값이 꺼진 블렌딩 상태를 생성합니다. 
+	//이제 알파블렌딩을 끄고 켜는데 필요한 두 블렌딩 상태를 가지게 되었습니다.
+	result = m_device->CreateBlendState(&blendStateDescription, &m_alphaDisableBlendingState); 
+	if(FAILED(result))
+		return false;	
+
+
 	return true;
 }
 
@@ -332,6 +367,18 @@ void D3D::Shutdown()
 {
 	if (m_swapChain)
 		m_swapChain->SetFullscreenState(false, NULL);
+
+	if (m_alphaEnableBlendingState)
+	{
+		m_alphaEnableBlendingState->Release();
+		m_alphaEnableBlendingState = 0;
+	} 
+	
+	if (m_alphaDisableBlendingState)
+	{ 
+		m_alphaDisableBlendingState->Release();
+		m_alphaDisableBlendingState = 0;
+	}
 
 	if (m_rasterState)
 	{
@@ -449,4 +496,38 @@ void D3D::TurnZBufferOn()
 void D3D::TurnZBufferOff()
 {
 	m_deviceContext->OMSetDepthStencilState(m_depthDisabledStencilState, 1);
+}
+
+//새 함수인 TurnOnAlphaBlending은 OMSetBlendState 함수와 m_alphaEnableBlendingState 변수를 사용하여 알파블렌딩을 켜는 일을 합니다.
+void D3D::TurnOnAlphaBlending()
+{
+	float blendFactor[4];
+
+
+	// Setup the blend factor.
+	blendFactor[0] = 0.0f;
+	blendFactor[1] = 0.0f;
+	blendFactor[2] = 0.0f;
+	blendFactor[3] = 0.0f;
+
+	// Turn on the alpha blending.
+	m_deviceContext->OMSetBlendState(m_alphaEnableBlendingState, blendFactor, 0xffffffff);
+
+}
+
+void D3D::TurnOffAlphaBlending()
+{
+	float blendFactor[4];
+
+
+	// Setup the blend factor.
+	blendFactor[0] = 0.0f;
+	blendFactor[1] = 0.0f;
+	blendFactor[2] = 0.0f;
+	blendFactor[3] = 0.0f;
+
+	// Turn off the alpha blending.
+	m_deviceContext->OMSetBlendState(m_alphaDisableBlendingState, blendFactor, 0xffffffff);
+
+
 }

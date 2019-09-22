@@ -26,6 +26,8 @@ bool System::Initialize()
 	int screenWidth = 0;
 	int screenHeight = 0;
 
+	bool result;
+
 	//윈도우 생성 초기화
 	InitWindows(screenWidth, screenHeight);
 
@@ -35,8 +37,14 @@ bool System::Initialize()
 		return false;
 
 	//Input 객체 초기화
-	m_Input->Initialize();
-	
+	result = m_Input->Initialize(m_HInstance, m_Hwnd, screenWidth, screenHeight);
+	if (!result)
+	{
+		MessageBox(m_Hwnd, L"Could not Initialize the input object.", L"Error", MB_OK);
+		return false;
+	}
+
+
 	//그래픽 객체 생성, 이 어플의 모든 그래픽 요소를 그리는 일. 그래픽 렌더링을 처리하기 위한 객체
 	m_Graphic = new Graphic();
 	if (!m_Graphic)
@@ -57,6 +65,7 @@ void System::Shutdown()
 
 	if (m_Input)
 	{
+		m_Input->ShutDown();
 		delete m_Input;
 		m_Input = 0;
 	}
@@ -86,6 +95,9 @@ void System::Run()
 	MSG msg;
 	ZeroMemory(&msg, sizeof(MSG));
 
+	bool done, result;
+
+	done = false;
 	while (true)
 	{
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -96,11 +108,19 @@ void System::Run()
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
+
+		if (msg.message == WM_QUIT)
+			done = true;
+
 		else
 		{
 			if (!Frame())
 				break;
 		}
+
+		//Run 함수에서 esc키를 확인하는 함수는 InputClass의 도우미 함수의 결과값을 확인하는 것으로 살짝 바뀌었습니다.
+		if (m_Input->IsEscapePressed() == true)
+			done = true;
 	}
 }
 
@@ -108,16 +128,6 @@ LRESULT System::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lpara
 {
 	switch (umsg)
 	{
-		case WM_KEYDOWN:
-		{
-			m_Input->KeyDown((unsigned int)wparam);
-			return 0;
-		}
-		case WM_KEYUP:
-		{
-			m_Input->KeyDown((unsigned int)wparam);
-			return 0;
-		}
 		default:
 		{
 			return DefWindowProc(hwnd, umsg, wparam, lparam);
@@ -127,12 +137,26 @@ LRESULT System::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lpara
 
 bool System::Frame()
 {
-	//ESC 감지 시 종료 여부를 처리합니다
-	if (m_Input->IsKeyDown(VK_ESCAPE))
+	bool result;
+	int mouseX, mouseY;
+
+	result = m_Input->Frame();
+	if (!result)
 		return false;
 
+	//입력 객체가 잘 갱신되었다면 GraphicsClass에 마우스의 위치가 바뀐것이 갱신되도록 합니다.
+	m_Input->GetMouseLocation(mouseX, mouseY);
+
 	//그래픽 객체의 프레임을 처리합니다
-	return m_Graphic->Frame();
+	result =  m_Graphic->Frame(mouseX, mouseY);
+	if (!result)
+		return false;
+
+	result = m_Graphic->Render();
+	if (!result)
+		return false;
+
+	return true;
 }
 
 void System::InitWindows(int& screenWidth, int& screenHeight)
@@ -204,8 +228,13 @@ void System::InitWindows(int& screenWidth, int& screenHeight)
 	SetFocus(m_Hwnd);
 }
 
+
+extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam);
 LRESULT CALLBACK WndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
 {
+	if (ImGui_ImplWin32_WndProcHandler(hwnd, umsg, wparam, lparam))
+		return true;
+
 	switch (umsg)
 	{
 	case WM_DESTROY:
