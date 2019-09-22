@@ -31,46 +31,69 @@ bool Input::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidth, int scre
 	if (FAILED(result))
 		return false;
 
+	//키보드 인터페이스 초기화
+	result = m_DirectInput->CreateDevice(GUID_SysKeyboard, &m_Keyboard, NULL);
+	if (FAILED(result))
+		return false;
+
 	//데이터 포맷 세팅 /이 경우 키보드가 되기 때문에 미리 정의된 데이터 형식을 사용할 수 있다
 	result = m_Keyboard->SetDataFormat(&c_dfDIKeyboard);
 	if (FAILED(result))
 		return false;
 
-	/*
-	키보드의 협력 레벨(cooperative level)을 정하는 것은 이 장치가 무엇을 하는지, 그리고 어떻게 사용될 것인지를 결정하므로 중요합니다.
-	여기서는 DISCL_EXCLUSIVE 플래그로 다른 프로그램들과 공유하지 않는다고 알려줍니다(배제 상태).
-	이렇게 하면 오직 이 어플리케이션에서만 이 입력을 감지할 수 있게 됩니다.
-	하지만 만일 다른 어플리케이션에서도 키보드의 입력에 접근하게 하고 싶다면 DISCL_NONEXCLUSIVE를 사용하여 그렇게 할 수 있습니다(비배제 상태).
-	그러면 print screen key로 다시 스크린샷을 찍을 수 있게 되고 마찬가지로 다른 어플리케이션들도 키보드로 제어할 수 있게 됩니다. 
-	기억해야 할 것은 비배제 상태이고 풀스크린이 아니라면 장치가 다른 윈도우로 포커스가 이동했는지,
-	그리고 다시 포커스를 얻어서 장치를 사용할 수 있게 되었는지 확인해야 한다는 것입니다. 
-	
-	이런 포커스를 잃어버리는 경우는 대개 다른 윈도우가 메인 윈도우가 되어 포커스를 얻었다던가 
-	아니면 우리 어플리케이션의 윈도우가 최소화되는 경우 발생합니다.
-	*/
-
-	result = m_Keyboard->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_EXCLUSIVE);
+	result = m_Keyboard->SetCooperativeLevel(NULL, DISCL_FOREGROUND | DISCL_EXCLUSIVE);
 	if (FAILED(result))
 		return false;
+
+	if (m_DirectInput)
+	{
+		HRESULT hr = m_Keyboard->Acquire();
+		if FAILED(hr)
+		{
+			switch (hr)
+			{
+			case DIERR_INVALIDPARAM: MessageBox(hwnd, L"Acquire FAILED : Invalid parameter ", L"InitializeKeyboard()", MB_OK); break;
+			case DIERR_NOTINITIALIZED: MessageBox(hwnd, L"Acquire FAILED : The object has not been initialized", L"InitializeKeyboard()", MB_OK); break;
+			case DIERR_OTHERAPPHASPRIO: MessageBox(hwnd, L"Acquire FAILED : Access Denied", L"InitializeKeyboard()", MB_OK); break;
+
+			default: MessageBox(hwnd, L"Acquire FAILED : Unknow Error", L"InitializeKeyboard()", MB_OK);
+			}
+		}
+	}
+	
+	/*	if (h == DIERR_NOTINITIALIZED)
+		{
+			MessageBox(0, L"Direct3DInput::initDirectInput() 5", 0, MB_OK);
+		}
+		if (h == DIERR_OTHERAPPHASPRIO)
+		{
+			MessageBox(0, L"Direct3DInput::initDirectInput() 5", 0, MB_OK);
+		}
+		if (h == DIERR_INVALIDPARAM)
+		{
+			MessageBox(0, L"Direct3DInput::initDirectInput() 5", 0, MB_OK);
+		}*/
+	
+
 
 	//키보드가 세팅되면 Acquire 함수를 호출하여 이 포인터로 키보드에 대한 접근을 취득합니다.
-	result = m_Keyboard->Acquire();
-	if (FAILED(result))
-		return false;
+	//HRESULT r = m_Keyboard->Acquire();
+	//if (FAILED(result))
+	//	return false;
 
 	result = m_DirectInput->CreateDevice(GUID_SysMouse, &m_Mouse, NULL);
 	if (FAILED(result))
 		return false;
 
 	//마우스에 대해서는 비배제 상태를 설정합니다. 따라서 매번 마우스가 포커스를 잃었는지 확인해야 합니다.
-	result = m_Mouse->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
+	result = m_Mouse->SetCooperativeLevel(NULL, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
 	if (FAILED(result))
 		return false;
 
 	//마우스가 설정되면 Acquire 함수를 호출하여 마우스에 대한 접근을 취득합니다.
 	result = m_Mouse->Acquire();
-	if (FAILED(result))
-		return false;
+	//if (FAILED(result))
+	//	return false;
 
 	return true;
 }
@@ -142,9 +165,9 @@ bool Input::ReadKeyboard()
 
 	result = m_Keyboard->GetDeviceState(sizeof(m_KeyBoardState), (LPVOID)&m_KeyBoardState);
 	if (FAILED(result))
-
 		return false;
-	return false;
+
+	return true;
 }
 
 /*

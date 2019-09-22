@@ -147,7 +147,6 @@ bool Text::Render(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3
 {
 	bool result;
 
-
 	// Draw the first sentence.
 	result = RenderSentence(deviceContext, m_sentence1, worldMatrix, orthoMatrix);
 	if (!result)
@@ -174,12 +173,41 @@ bool Text::Render(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3
 //TextClass에 마우스의 x,y좌표를 두 문자열로 변환하고 각 문장들을 갱신하여
 //그 위치가 화면에 그려질 수 있게 합니다.
 
-bool Text::SetMousePosition(ID3D11Device *, ID3D11DeviceContext *, HWND, int, int, D3DXMATRIX)
+bool Text::SetMousePosition(int mouseX, int mouseY, ID3D11DeviceContext* deviceContext)
 {
 	char tempString[16];
 	char mouseString[16];
+	bool result;
 
-	return false;
+	//mouseX int형을 string 으로 형변환
+	_itoa_s(mouseX, tempString, 10);
+
+	//mouseX 값 설정
+	strcpy_s(mouseString, "Mouse X : ");
+	strcat_s(mouseString, tempString);
+
+	//문장 정점 버퍼를 새 문자열 정보로 업데이트하십시오.
+	result = UpdateSentence(m_sentence1, mouseString, 20, 20, 1.0f, 1.0f, 1.0f, deviceContext);
+	if (!result)
+	{
+		return false;
+	}
+
+	//mouseY int형을 string 으로 형변환
+	_itoa_s(mouseY, tempString, 10);
+
+	//mouseY 값 설정
+	strcpy_s(mouseString, "Mouse Y : ");
+	strcat_s(mouseString, tempString);
+
+	//문장 정점 버퍼를 새 문자열 정보로 업데이트하십시오.
+	result = UpdateSentence(m_sentence2, mouseString, 20, 40, 1.0f, 1.0f, 1.0f, deviceContext);
+	if (!result)
+	{
+		return false;
+	}
+
+	return true;
 }
 	
 

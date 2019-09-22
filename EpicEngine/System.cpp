@@ -148,7 +148,7 @@ bool System::Frame()
 	m_Input->GetMouseLocation(mouseX, mouseY);
 
 	//그래픽 객체의 프레임을 처리합니다
-	result =  m_Graphic->Frame(mouseX, mouseY);
+	result = m_Graphic->Frame(mouseX, mouseY);
 	if (!result)
 		return false;
 

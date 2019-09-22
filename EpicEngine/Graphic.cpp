@@ -201,38 +201,20 @@ void Graphic::Shutdown()
 	}
 }
 
-bool Graphic::Frame()
-{
-	bool result;
-
-	static float rotation = 0.0f;
-
-	rotation += (float)D3DX_PI * 0.005f;
-	if (rotation > 360.f)
-		rotation -= 360.f;
-
-	//그래픽 씬 렌더
-	result = Render(rotation);
-	if (!result)
-		return false;
-
-	return true;
-}
-
 bool Graphic::Frame(int mouseX, int mouseY)
 {
 	bool result;
 
-	result = m_Text->SetMousePosition(mouseX, mouseY, m_Direct3D->GetDevice());
+	result = m_Text->SetMousePosition(mouseX, mouseY, m_Direct3D->GetDeviceContext());
 	if (!result)
 		return false;
 
 	//m_Camera->SetPosition(0.f, 0.f, -10.f);
 
-	return false;
+	return true;
 }
 
-bool Graphic::Render(float rotation)
+bool Graphic::Render()
 {
 	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix , orthMatrix;
 	bool result;
@@ -278,6 +260,9 @@ bool Graphic::Render(float rotation)
 	if (!result)
 		return false;
 
+	static float rotation = 0.0f;
+	rotation += 0.01f;
+
 	//월드를 돌려서 확인
 	D3DXMatrixRotationY(&worldMatrix, rotation);
 
@@ -296,7 +281,6 @@ bool Graphic::Render(float rotation)
 
 	//다시 알파블렌딩을 꺼서 그리는 물체 뒤에 뭔가 있을때 알파블렌딩 효과가 나오지 않게 합니다.
 	m_Direct3D->TurnOffAlphaBlending();
-
 	m_Direct3D->TurnZBufferOn();
 
 	static int counter = 0;

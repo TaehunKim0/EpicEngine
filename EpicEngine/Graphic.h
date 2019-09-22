@@ -30,11 +30,11 @@ public:
 
 	bool Initialize(int screenWidth, int screenHeight, HWND hwnd);
 	void Shutdown();
-	bool Frame();
+	//bool Frame(int , int);
 
-private:
+public:
 	bool Frame(int, int);
-	bool Render(float rotation);
+	bool Render();
 
 private:
 	D3D* m_Direct3D;
