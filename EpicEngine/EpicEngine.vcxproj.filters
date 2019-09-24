@@ -74,7 +74,18 @@
     <ClInclude Include="Imgui\imstb_truetype.h">
       <Filter>ImGUI</Filter>
     </ClInclude>
-    <ClInclude Include="Sound.h" />
+    <ClInclude Include="Sound.h">
+      <Filter>System\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="Fps.h">
+      <Filter>System\FPS</Filter>
+    </ClInclude>
+    <ClInclude Include="CPU.h">
+      <Filter>System\CPU</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>System\Timer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -139,7 +150,18 @@
     <ClCompile Include="Imgui\imgui_widgets.cpp">
       <Filter>ImGUI</Filter>
     </ClCompile>
-    <ClCompile Include="Sound.cpp" />
+    <ClCompile Include="Sound.cpp">
+      <Filter>System\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="Fps.cpp">
+      <Filter>System\FPS</Filter>
+    </ClCompile>
+    <ClCompile Include="CPU.cpp">
+      <Filter>System\CPU</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>System\Timer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="System">
@@ -201,6 +223,15 @@
     </Filter>
     <Filter Include="System\Sound">
       <UniqueIdentifier>{3ff4b88b-c306-4323-9bef-93ac0df1e7d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\FPS">
+      <UniqueIdentifier>{e889825f-0a49-4d50-bf3f-95ad358b6197}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\CPU">
+      <UniqueIdentifier>{ddf0a1e4-7e5f-4424-80d3-b80b6dd6da4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\Timer">
+      <UniqueIdentifier>{6cf5d831-2c1e-4311-aff3-17a160687b3f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

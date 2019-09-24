@@ -3,6 +3,9 @@
 class Input;
 class Graphic;
 class Sound;
+class Timer;
+class CPU;
+class Fps;
 class System
 {
 public:
@@ -29,6 +32,9 @@ private:
 	Input* m_Input;
 	Graphic* m_Graphic;
 	Sound* m_Sound;
+	Timer* m_Timer;
+	Fps* m_Fps;
+	CPU* m_Cpu;
 };
 
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam);

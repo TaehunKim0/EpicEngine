@@ -3,6 +3,9 @@
 #include"Graphic.h"
 #include "System.h"
 #include "Sound.h"
+#include "Fps.h"
+#include "CPU.h"
+#include "Timer.h"
 
 System::System()
 {
@@ -67,6 +70,31 @@ bool System::Initialize()
 		return false;
 	}
 
+	//Fps Intialize
+	m_Fps = new Fps();
+	if (!m_Fps)
+		return false;
+
+	m_Fps->Initialize();
+
+	//Cpu Initialize
+	m_Cpu = new CPU();
+	if (!m_Cpu)
+		return false;
+
+	m_Cpu->Initialize();
+
+	//Timer Initialize
+	m_Timer = new Timer();
+	if (!m_Timer)
+		return false;
+
+	result = m_Timer->Initialize();
+	if (!result)
+	{
+		return false;
+	}
+
 	return true;
 }
 
@@ -91,6 +119,25 @@ void System::Shutdown()
 		m_Sound->Shutdown();
 		delete m_Sound;
 		m_Sound = nullptr;
+	}
+
+	if (m_Cpu)
+	{
+		m_Cpu->Shutdown();
+		delete m_Cpu;
+		m_Cpu = nullptr;
+	}
+
+	if (m_Fps)
+	{
+		delete m_Fps;
+		m_Fps = nullptr;
+	}
+
+	if (m_Timer)
+	{
+		delete m_Timer;
+		m_Timer = nullptr;
 	}
 
 	ShutdownWindows();
@@ -163,6 +210,10 @@ bool System::Frame()
 	bool result;
 	int mouseX, mouseY;
 
+	m_Timer->Frame();
+	m_Fps->Frame();
+	m_Cpu->Frame();
+
 	result = m_Input->Frame();
 	if (!result)
 		return false;
@@ -171,7 +222,7 @@ bool System::Frame()
 	m_Input->GetMouseLocation(mouseX, mouseY);
 
 	//그래픽 객체의 프레임을 처리합니다
-	result = m_Graphic->Frame(mouseX, mouseY);
+	result = m_Graphic->Frame(m_Fps->GetFps(), m_Cpu->GetCpuCentage(), mouseX, mouseY);
 	if (!result)
 		return false;
 

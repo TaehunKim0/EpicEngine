@@ -35,6 +35,5 @@ private:
 
 	int m_ScreenWidth, m_ScreenHeight;
 	int m_MouseX, m_MouseY;
-	DIDEVICEOBJECTDATA m_KeyboardBuffer;
 };
 

@@ -201,13 +201,21 @@ void Graphic::Shutdown()
 	}
 }
 
-bool Graphic::Frame(int mouseX, int mouseY)
+bool Graphic::Frame(int fps, int cpu, int mouseX, int mouseY)
 {
 	bool result;
-
-	result = m_Text->SetMousePosition(mouseX, mouseY, m_Direct3D->GetDeviceContext());
+	
+	result = m_Text->SetFps(fps, m_Direct3D->GetDeviceContext());
 	if (!result)
 		return false;
+
+	result = m_Text->SetCpu(cpu, m_Direct3D->GetDeviceContext());
+	if (!result)
+		return false;
+
+	/*result = m_Text->SetMousePosition(mouseX, mouseY, m_Direct3D->GetDeviceContext());
+	if (!result)
+		return false;*/
 
 	//m_Camera->SetPosition(0.f, 0.f, -10.f);
 

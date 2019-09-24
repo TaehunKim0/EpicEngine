@@ -35,7 +35,6 @@ private:
 		unsigned long dataSize;
 	};
 
-
 public:
 	Sound();
 	Sound(const Sound&);

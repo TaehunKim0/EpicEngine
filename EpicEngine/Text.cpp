@@ -170,6 +170,84 @@ bool Text::Render(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3
 	return true;
 }
 
+/*
+SetFps 함수는 입력으로 정수를 받고 문자열로 변환합니다.
+fps값이 문자열로 변환되고 나면 이 숫자가 fps값이라는 것을 나타내는 다른 문자열 뒤에 붙입니다.
+그 뒤에 화면에 그려지기 위해 문장 구조체에 저장됩니다.
+이 함수는 또한 fps가 60 이상이면 초록색, 60 미만이면 노란색, 30 미만이면 붉은색의 글자가 표시되도록 합니다.
+*/
+
+bool Text::SetFps(int fps, ID3D11DeviceContext * deviceContext)
+{
+	char tempString[16];
+	char fpsString[16];
+	float red, green, blue;
+	bool result;
+
+	if (fps > 9999)
+	{
+		fps = 9999;
+	}
+
+	//정수를 스트링 형으로 변환
+	_itoa_s(fps, tempString, 10);
+
+	strcpy_s(fpsString, "FPS : ");
+	strcat_s(fpsString, tempString);
+
+	if (fps >= 60)
+	{
+		red = 0.0f;
+		green = 1.0f;
+		blue = 0.0f;
+	}
+
+	if (fps < 60)
+	{
+		red = 1.0f;
+		green = 1.0f;
+		blue = 0.0f;
+	}
+
+	if (fps < 30)
+	{
+		red = 1.0f;
+		green = 0.0f;
+		blue = 0.0f;
+	}	
+
+	result = UpdateSentence(m_sentence1, fpsString, 20, 20, red, green, blue, deviceContext);
+	if (!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool Text::SetCpu(int cpu, ID3D11DeviceContext * deviceContext)
+{
+	char tempString[16];
+	char cpuString[16];
+
+	bool result;
+
+	//정수를 스트링 형으로 변환
+	_itoa_s(cpu, tempString, 10);
+
+	strcpy_s(cpuString, "CPU : ");	
+	strcat_s(cpuString, tempString);
+	strcat_s(cpuString, "%");
+
+	result = UpdateSentence(m_sentence2, cpuString, 20, 40, 0.0f, 1.0f, 0.0f, deviceContext);
+	if (!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
 //TextClass에 마우스의 x,y좌표를 두 문자열로 변환하고 각 문장들을 갱신하여
 //그 위치가 화면에 그려질 수 있게 합니다.
 

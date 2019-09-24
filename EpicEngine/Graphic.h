@@ -33,7 +33,7 @@ public:
 	//bool Frame(int , int);
 
 public:
-	bool Frame(int, int);
+	bool Frame(int , int ,int, int);
 	bool Render();
 
 private:

@@ -257,4 +257,3 @@ void Input::ProcessInput()
 	if(m_MouseX > m_ScreenWidth) {m_MouseX = m_ScreenWidth; }
 	if(m_MouseY > m_ScreenHeight) {m_MouseY = m_ScreenHeight; }
 }
-
