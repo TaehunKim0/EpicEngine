@@ -175,9 +175,14 @@ bool Input::Frame()
 //또 어플리케이션에서 필요한 다른 키들을 확인하는 함수를 만들 수도 있습니다.
 bool Input::IsEscapePressed()
 {
-	if (m_KeyBoardState[DIK_ESCAPE] & 0x800)
+	if (m_KeyBoardState[VK_SPACE] & 0x8000)
 	{
 		return true;
+	}
+
+	if (m_KeyBoardState[DIK_ESCAPE] & 0x8000)
+	{
+		PostQuitMessage(0);
 	}
 
 	return false;
@@ -201,7 +206,6 @@ bool Input::ReadKeyboard()
 	{
 		hr = m_Keyboard->Acquire();
 	}
-
 
 	return true;
 }

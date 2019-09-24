@@ -2,6 +2,7 @@
 
 class Input;
 class Graphic;
+class Sound;
 class System
 {
 public:
@@ -25,8 +26,9 @@ private:
 	HINSTANCE m_HInstance;
 	HWND m_Hwnd;
 
-	Input* m_Input = nullptr;
-	Graphic* m_Graphic = nullptr;
+	Input* m_Input;
+	Graphic* m_Graphic;
+	Sound* m_Sound;
 };
 
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam);

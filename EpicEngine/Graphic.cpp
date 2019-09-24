@@ -295,8 +295,10 @@ bool Graphic::Render()
 	ImGui::Text("This is Example Text");
 
 	if (ImGui::Button("CLICK ME!"))
-		counter++;
-
+	{
+		PostQuitMessage(0);
+	}
+	
 	ImGui::SameLine();
 	string clickCount = "CLICK Count : " + std::to_string(counter);
 	ImGui::Text(clickCount.c_str());

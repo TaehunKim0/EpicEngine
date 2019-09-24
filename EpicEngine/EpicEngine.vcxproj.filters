@@ -74,6 +74,7 @@
     <ClInclude Include="Imgui\imstb_truetype.h">
       <Filter>ImGUI</Filter>
     </ClInclude>
+    <ClInclude Include="Sound.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -138,6 +139,7 @@
     <ClCompile Include="Imgui\imgui_widgets.cpp">
       <Filter>ImGUI</Filter>
     </ClCompile>
+    <ClCompile Include="Sound.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="System">
@@ -196,6 +198,9 @@
     </Filter>
     <Filter Include="ImGUI">
       <UniqueIdentifier>{8534e5e4-045c-422c-9051-7bbb0de21184}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\Sound">
+      <UniqueIdentifier>{3ff4b88b-c306-4323-9bef-93ac0df1e7d7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

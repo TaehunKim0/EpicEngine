@@ -2,7 +2,7 @@
 #include "Input.h"
 #include"Graphic.h"
 #include "System.h"
-
+#include "Sound.h"
 
 System::System()
 {
@@ -11,6 +11,7 @@ System::System()
 	m_HInstance = nullptr;
 	m_Hwnd = nullptr;
 	m_Input = nullptr;
+	m_Sound = nullptr;
 }
 
 System::System(const System&) : System()
@@ -51,7 +52,22 @@ bool System::Initialize()
 		return false;
 
 	//그래픽 객체 초기화
-	return m_Graphic->Initialize(screenWidth, screenHeight, m_Hwnd);
+	result = m_Graphic->Initialize(screenWidth, screenHeight, m_Hwnd);
+	if (!result)
+		return false;
+
+	m_Sound = new Sound();
+	if (!m_Sound)
+		return false;
+
+	result = m_Sound->Initialize(m_Hwnd);
+	if (!result)
+	{
+		MessageBox(m_Hwnd, L"Could not Initialize Sound class", NULL, MB_OK);
+		return false;
+	}
+
+	return true;
 }
 
 void System::Shutdown()
@@ -68,6 +84,13 @@ void System::Shutdown()
 		m_Input->ShutDown();
 		delete m_Input;
 		m_Input = 0;
+	}
+
+	if (m_Sound)
+	{
+		m_Sound->Shutdown();
+		delete m_Sound;
+		m_Sound = nullptr;
 	}
 
 	ShutdownWindows();
