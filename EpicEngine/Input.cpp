@@ -20,81 +20,111 @@ bool Input::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidth, int scre
 {
 	HRESULT result;
 
-	m_ScreenWidth = screenWidth;
-	m_ScreenHeight = screenHeight;
 
+	// Store the screen size which will be used for positioning the mouse cursor.
+	 m_ScreenWidth = screenWidth;
+	 m_ScreenHeight = screenHeight;
+
+	// Initialize the location of the mouse on the screen.
 	m_MouseX = 0;
 	m_MouseY = 0;
 
-	//Direct Input 의 인터페이스 초기화 , DirectInput 객체를 얻게 되면 다른 입력 장치들을 초기화할 수 있다.
+	// Initialize the main direct input interface.
 	result = DirectInput8Create(hinstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&m_DirectInput, NULL);
 	if (FAILED(result))
+	{
 		return false;
+	}
 
-	//키보드 인터페이스 초기화
+	// Initialize the direct input interface for the keyboard.
 	result = m_DirectInput->CreateDevice(GUID_SysKeyboard, &m_Keyboard, NULL);
 	if (FAILED(result))
+	{
 		return false;
+	}
 
-	//데이터 포맷 세팅 /이 경우 키보드가 되기 때문에 미리 정의된 데이터 형식을 사용할 수 있다
+	// Set the data format.  In this case since it is a keyboard we can use the predefined data format.
 	result = m_Keyboard->SetDataFormat(&c_dfDIKeyboard);
 	if (FAILED(result))
-		return false;
-
-	result = m_Keyboard->SetCooperativeLevel(NULL, DISCL_FOREGROUND | DISCL_EXCLUSIVE);
-	if (FAILED(result))
-		return false;
-
-	if (m_DirectInput)
 	{
-		HRESULT hr = m_Keyboard->Acquire();
-		if FAILED(hr)
-		{
-			switch (hr)
-			{
-			case DIERR_INVALIDPARAM: MessageBox(hwnd, L"Acquire FAILED : Invalid parameter ", L"InitializeKeyboard()", MB_OK); break;
-			case DIERR_NOTINITIALIZED: MessageBox(hwnd, L"Acquire FAILED : The object has not been initialized", L"InitializeKeyboard()", MB_OK); break;
-			case DIERR_OTHERAPPHASPRIO: MessageBox(hwnd, L"Acquire FAILED : Access Denied", L"InitializeKeyboard()", MB_OK); break;
+		return false;
+	}
 
-			default: MessageBox(hwnd, L"Acquire FAILED : Unknow Error", L"InitializeKeyboard()", MB_OK);
-			}
+	// Set the cooperative level of the keyboard to not share with other programs.
+	result = m_Keyboard->SetCooperativeLevel(hwnd, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE);
+
+	if (FAILED(result))
+	{
+		return false;
+	}
+	else
+	{
+		HRESULT hr;
+		DIPROPDWORD buffsize;
+		buffsize.diph.dwSize = sizeof(buffsize);
+		buffsize.diph.dwHeaderSize = sizeof(buffsize.diph);
+		buffsize.diph.dwObj = 0;
+		buffsize.diph.dwHow = DIPH_DEVICE;
+		buffsize.dwData = 32;
+		hr = m_Keyboard->SetProperty(DIPROP_BUFFERSIZE, &buffsize.diph);
+
+		if (FAILED(m_Keyboard->SetProperty(DIPROP_BUFFERSIZE, &buffsize.diph)))
+		{
+			return false;
+		}
+
+		else if (FAILED(m_Keyboard->Acquire()))
+		{
+			return false;
 		}
 	}
-	
-	/*	if (h == DIERR_NOTINITIALIZED)
+
+	/*if FAILED(result)
+	{
+		switch (result)
 		{
-			MessageBox(0, L"Direct3DInput::initDirectInput() 5", 0, MB_OK);
+		case DIERR_INVALIDPARAM: MessageBox(hwnd, L"Acquire FAILED : Invalid parameter ", L"InitializeKeyboard()", MB_OK); break;
+		case DIERR_NOTINITIALIZED: MessageBox(hwnd, L"Acquire FAILED : The object has not been initialized", L"InitializeKeyboard()", MB_OK); break;
+		case DIERR_OTHERAPPHASPRIO: MessageBox(hwnd, L"Acquire FAILED : Access Denied", L"InitializeKeyboard()", MB_OK); break;
+		default: MessageBox(hwnd, L"Acquire FAILED : Unknow Error", L"InitializeKeyboard()", MB_OK);
 		}
-		if (h == DIERR_OTHERAPPHASPRIO)
-		{
-			MessageBox(0, L"Direct3DInput::initDirectInput() 5", 0, MB_OK);
-		}
-		if (h == DIERR_INVALIDPARAM)
-		{
-			MessageBox(0, L"Direct3DInput::initDirectInput() 5", 0, MB_OK);
-		}*/
+	}*/
 	
-
-
-	//키보드가 세팅되면 Acquire 함수를 호출하여 이 포인터로 키보드에 대한 접근을 취득합니다.
-	//HRESULT r = m_Keyboard->Acquire();
-	//if (FAILED(result))
-	//	return false;
-
 	result = m_DirectInput->CreateDevice(GUID_SysMouse, &m_Mouse, NULL);
 	if (FAILED(result))
 		return false;
 
-	//마우스에 대해서는 비배제 상태를 설정합니다. 따라서 매번 마우스가 포커스를 잃었는지 확인해야 합니다.
-	result = m_Mouse->SetCooperativeLevel(NULL, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
-	if (FAILED(result))
+	if (FAILED(m_Mouse->SetDataFormat(&c_dfDIMouse)))
 		return false;
 
-	//마우스가 설정되면 Acquire 함수를 호출하여 마우스에 대한 접근을 취득합니다.
-	result = m_Mouse->Acquire();
-	//if (FAILED(result))
-	//	return false;
+	//마우스에 대해서는 비배제 상태를 설정합니다. 따라서 매번 마우스가 포커스를 잃었는지 확인해야 합니다.
+	result = m_Mouse->SetCooperativeLevel(hwnd, DISCL_NONEXCLUSIVE | DISCL_BACKGROUND);
 
+	if (FAILED(result))
+	{	
+		return false;
+	}
+	else
+	{
+		DIPROPDWORD buffsize;
+		buffsize.diph.dwSize = sizeof(buffsize);
+		buffsize.diph.dwHeaderSize = sizeof(buffsize.diph);
+		buffsize.diph.dwObj = 0;
+		buffsize.diph.dwHow = DIPH_DEVICE;
+		buffsize.dwData = 32;
+		if (FAILED(m_Mouse->SetProperty(DIPROP_BUFFERSIZE, &buffsize.diph)))
+		{
+			return false;
+		}
+		else if (FAILED(m_Mouse->Acquire()))
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
 	return true;
 }
 
@@ -163,9 +193,15 @@ bool Input::ReadKeyboard()
 {
 	bool result;
 
-	result = m_Keyboard->GetDeviceState(sizeof(m_KeyBoardState), (LPVOID)&m_KeyBoardState);
-	if (FAILED(result))
-		return false;
+	HRESULT hr;
+
+	//m_Keyboard->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), &m_KeyboardBuffer ,(LPVOID)&m_KeyBoardState,)
+	hr = m_Keyboard->GetDeviceState(sizeof(m_KeyBoardState), (LPVOID)&m_KeyBoardState);
+	if (FAILED(hr))
+	{
+		hr = m_Keyboard->Acquire();
+	}
+
 
 	return true;
 }
