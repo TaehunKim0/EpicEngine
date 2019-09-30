@@ -351,7 +351,7 @@ bool Sound::PlayWaveFile()
 	if (FAILED(result))
 		return false;
 
-	result = m_secondaryBuffer1->Play(0, 0, DSBPLAY_LOOPING);
+	result = m_secondaryBuffer1->Play(0, 0, 0);
 	if (FAILED(result))
 		return false;
 

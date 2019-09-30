@@ -6,6 +6,7 @@
 #include "Fps.h"
 #include "CPU.h"
 #include "Timer.h"
+#include "Position.h"
 
 System::System()
 {
@@ -15,6 +16,7 @@ System::System()
 	m_Hwnd = nullptr;
 	m_Input = nullptr;
 	m_Sound = nullptr;
+	m_Position = nullptr;
 }
 
 System::System(const System&) : System()
@@ -59,16 +61,16 @@ bool System::Initialize()
 	if (!result)
 		return false;
 
-	m_Sound = new Sound();
-	if (!m_Sound)
-		return false;
+	//m_Sound = new Sound();
+	//if (!m_Sound)
+	//	return false;
 
-	result = m_Sound->Initialize(m_Hwnd);
-	if (!result)
-	{
-		MessageBox(m_Hwnd, L"Could not Initialize Sound class", NULL, MB_OK);
-		return false;
-	}
+	//result = m_Sound->Initialize(m_Hwnd);
+	//if (!result)
+	//{
+	//	MessageBox(m_Hwnd, L"Could not Initialize Sound class", NULL, MB_OK);
+	//	return false;
+	//}
 
 	//Fps Intialize
 	m_Fps = new Fps();
@@ -91,15 +93,23 @@ bool System::Initialize()
 
 	result = m_Timer->Initialize();
 	if (!result)
-	{
 		return false;
-	}
+
+	m_Position = new Position;
+	if (!m_Position)
+		return false;
 
 	return true;
 }
 
 void System::Shutdown()
 {
+	if (m_Position)
+	{
+		delete m_Position;
+		m_Position = nullptr;
+	}
+
 	if (m_Graphic)
 	{
 		m_Graphic->Shutdown();
@@ -207,22 +217,44 @@ LRESULT System::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lpara
 
 bool System::Frame()
 {
-	bool result;
+	bool result, keydown;
 	int mouseX, mouseY;
+	float rotationY;
 
 	m_Timer->Frame();
-	m_Fps->Frame();
-	m_Cpu->Frame();
+	/*m_Fps->Frame();
+	m_Cpu->Frame();*/
 
 	result = m_Input->Frame();
 	if (!result)
 		return false;
 
+	//매 프레임마다 PositionClass 객체의 프레임 시간을 갱신합니다.
+	m_Position->SetFrameTime(m_Timer->GetTime());
+
+	/*
+	프레임 시간을 갱신한 뒤 PositionClass의 현재 키보드 상태를 얻어와 움직임 관련 함수들을 호출합니다.
+	이 함수들은 카메라의 현재 위치를 갱신할 것입니다.
+	*/
+	keydown = m_Input->IsLeftArrowPressed();
+	m_Position->TurnLeft(keydown);
+
+	keydown = m_Input->IsRightArrowPressed();
+	m_Position->TurnRight(keydown);
+
+
+	m_Position->GetRotation(rotationY);
+
+
 	//입력 객체가 잘 갱신되었다면 GraphicsClass에 마우스의 위치가 바뀐것이 갱신되도록 합니다.
 	m_Input->GetMouseLocation(mouseX, mouseY);
 
 	//그래픽 객체의 프레임을 처리합니다
-	result = m_Graphic->Frame(m_Fps->GetFps(), m_Cpu->GetCpuCentage(), mouseX, mouseY);
+	//result = m_Graphic->Frame(m_Fps->GetFps(), m_Cpu->GetCpuCentage(), mouseX, mouseY);
+	//if (!result)
+	//	return false;
+
+	result = m_Graphic->Frame(rotationY);
 	if (!result)
 		return false;
 

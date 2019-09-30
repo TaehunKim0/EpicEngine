@@ -188,6 +188,26 @@ bool Input::IsEscapePressed()
 	return false;
 }
 
+bool Input::IsLeftArrowPressed()
+{
+	if (m_KeyBoardState[DIK_LEFT] & 0x80)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+bool Input::IsRightArrowPressed()
+{
+	if (m_KeyBoardState[DIK_RIGHT] & 0x80)
+	{
+		return true;
+	}
+
+	return false;
+}
+
 void Input::GetMouseLocation(int & mouseX, int & mouseY)
 {
 	mouseX = m_MouseX;

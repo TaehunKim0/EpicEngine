@@ -10,6 +10,8 @@
 #include "Bitmap.h"
 #include "TextureShader.h"
 #include "Text.h"
+#include "ModelList.h"
+#include "Frustum.h"
 
 /*D3D 클래스를 초기화하고 정리하는 코드*/
 //BeginScene EndScene 를 호출해 Direct3D를 사용하여 그리는 부분
@@ -34,6 +36,7 @@ public:
 
 public:
 	bool Frame(int , int ,int, int);
+	bool Frame(float);
 	bool Render();
 
 private:
@@ -46,6 +49,8 @@ private:
 	Light* m_Light;
 	Bitmap* m_Bitmap;
 	Text* m_Text;
+	ModelList* m_ModelList;
+	Frustum* m_Frustum;
 
 	float translationOffset[3];
 };

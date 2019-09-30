@@ -6,6 +6,7 @@ class Sound;
 class Timer;
 class CPU;
 class Fps;
+class Position;
 class System
 {
 public:
@@ -35,6 +36,7 @@ private:
 	Timer* m_Timer;
 	Fps* m_Fps;
 	CPU* m_Cpu;
+	Position* m_Position;
 };
 
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam);

@@ -3,52 +3,52 @@
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Bitmap.h">
-      <Filter>Core\Bitmap</Filter>
+      <Filter>Engine\Core\Bitmap</Filter>
     </ClInclude>
     <ClInclude Include="D3D.h">
-      <Filter>System\D3D</Filter>
+      <Filter>Engine\System\D3D</Filter>
     </ClInclude>
     <ClInclude Include="Graphic.h">
-      <Filter>System\Graphic</Filter>
+      <Filter>Engine\System\Graphic</Filter>
     </ClInclude>
     <ClInclude Include="Input.h">
-      <Filter>System\Input</Filter>
+      <Filter>Engine\System\Input</Filter>
     </ClInclude>
     <ClInclude Include="System.h">
-      <Filter>System\System</Filter>
+      <Filter>Engine\System\System</Filter>
     </ClInclude>
     <ClInclude Include="ColorShader.h">
-      <Filter>Shader\Color</Filter>
+      <Filter>Engine\Shader\Color</Filter>
     </ClInclude>
     <ClInclude Include="FontShader.h">
-      <Filter>Shader\Font</Filter>
+      <Filter>Engine\Shader\Font</Filter>
     </ClInclude>
     <ClInclude Include="LightShader.h">
-      <Filter>Shader\Light</Filter>
+      <Filter>Engine\Shader\Light</Filter>
     </ClInclude>
     <ClInclude Include="TextureShader.h">
-      <Filter>Shader\Texture</Filter>
+      <Filter>Engine\Shader\Texture</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">
-      <Filter>Core\Camera</Filter>
+      <Filter>Engine\Core\Camera</Filter>
     </ClInclude>
     <ClInclude Include="Font.h">
-      <Filter>Core\Font</Filter>
+      <Filter>Engine\Core\Font</Filter>
     </ClInclude>
     <ClInclude Include="Light.h">
-      <Filter>Core\Light</Filter>
+      <Filter>Engine\Core\Light</Filter>
     </ClInclude>
     <ClInclude Include="Model.h">
-      <Filter>Core\Model</Filter>
+      <Filter>Engine\Core\Model</Filter>
     </ClInclude>
     <ClInclude Include="Text.h">
-      <Filter>Core\Text</Filter>
+      <Filter>Engine\Core\Text</Filter>
     </ClInclude>
     <ClInclude Include="Texture.h">
-      <Filter>Core\Texture</Filter>
+      <Filter>Engine\Core\Texture</Filter>
     </ClInclude>
     <ClInclude Include="AlignedAllocationPolicy.h">
-      <Filter>System</Filter>
+      <Filter>Engine\System</Filter>
     </ClInclude>
     <ClInclude Include="Imgui\imconfig.h">
       <Filter>ImGUI</Filter>
@@ -75,65 +75,68 @@
       <Filter>ImGUI</Filter>
     </ClInclude>
     <ClInclude Include="Sound.h">
-      <Filter>System\Sound</Filter>
+      <Filter>Engine\Core\Sound</Filter>
     </ClInclude>
     <ClInclude Include="Fps.h">
-      <Filter>System\FPS</Filter>
+      <Filter>Engine\System\UI\FPS</Filter>
     </ClInclude>
     <ClInclude Include="CPU.h">
-      <Filter>System\CPU</Filter>
+      <Filter>Engine\System\UI\CPU</Filter>
     </ClInclude>
     <ClInclude Include="Timer.h">
-      <Filter>System\Timer</Filter>
+      <Filter>Engine\System\UI\Timer</Filter>
     </ClInclude>
+    <ClInclude Include="Frustum.h" />
+    <ClInclude Include="ModelList.h" />
+    <ClInclude Include="Position.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="WinMain.cpp" />
     <ClCompile Include="Bitmap.cpp">
-      <Filter>Core\Bitmap</Filter>
+      <Filter>Engine\Core\Bitmap</Filter>
     </ClCompile>
     <ClCompile Include="D3D.cpp">
-      <Filter>System\D3D</Filter>
+      <Filter>Engine\System\D3D</Filter>
     </ClCompile>
     <ClCompile Include="Graphic.cpp">
-      <Filter>System\Graphic</Filter>
+      <Filter>Engine\System\Graphic</Filter>
     </ClCompile>
     <ClCompile Include="Input.cpp">
-      <Filter>System\Input</Filter>
+      <Filter>Engine\System\Input</Filter>
     </ClCompile>
     <ClCompile Include="System.cpp">
-      <Filter>System\System</Filter>
+      <Filter>Engine\System\System</Filter>
     </ClCompile>
     <ClCompile Include="ColorShader.cpp">
-      <Filter>Shader\Color</Filter>
+      <Filter>Engine\Shader\Color</Filter>
     </ClCompile>
     <ClCompile Include="FontShader.cpp">
-      <Filter>Shader\Font</Filter>
+      <Filter>Engine\Shader\Font</Filter>
     </ClCompile>
     <ClCompile Include="LightShader.cpp">
-      <Filter>Shader\Light</Filter>
+      <Filter>Engine\Shader\Light</Filter>
     </ClCompile>
     <ClCompile Include="TextureShader.cpp">
-      <Filter>Shader\Texture</Filter>
+      <Filter>Engine\Shader\Texture</Filter>
     </ClCompile>
     <ClCompile Include="Camera.cpp">
-      <Filter>Core\Camera</Filter>
+      <Filter>Engine\Core\Camera</Filter>
     </ClCompile>
     <ClCompile Include="Font.cpp">
-      <Filter>Core\Font</Filter>
+      <Filter>Engine\Core\Font</Filter>
     </ClCompile>
     <ClCompile Include="Light.cpp">
-      <Filter>Core\Light</Filter>
+      <Filter>Engine\Core\Light</Filter>
     </ClCompile>
     <ClCompile Include="Model.cpp">
-      <Filter>Core\Model</Filter>
+      <Filter>Engine\Core\Model</Filter>
     </ClCompile>
     <ClCompile Include="Text.cpp">
-      <Filter>Core\Text</Filter>
+      <Filter>Engine\Core\Text</Filter>
     </ClCompile>
     <ClCompile Include="Texture.cpp">
-      <Filter>Core\Texture</Filter>
+      <Filter>Engine\Core\Texture</Filter>
     </ClCompile>
     <ClCompile Include="Imgui\imgui.cpp">
       <Filter>ImGUI</Filter>
@@ -151,113 +154,125 @@
       <Filter>ImGUI</Filter>
     </ClCompile>
     <ClCompile Include="Sound.cpp">
-      <Filter>System\Sound</Filter>
+      <Filter>Engine\Core\Sound</Filter>
     </ClCompile>
     <ClCompile Include="Fps.cpp">
-      <Filter>System\FPS</Filter>
+      <Filter>Engine\System\UI\FPS</Filter>
     </ClCompile>
     <ClCompile Include="CPU.cpp">
-      <Filter>System\CPU</Filter>
+      <Filter>Engine\System\UI\CPU</Filter>
     </ClCompile>
     <ClCompile Include="Timer.cpp">
-      <Filter>System\Timer</Filter>
+      <Filter>Engine\System\UI\Timer</Filter>
     </ClCompile>
+    <ClCompile Include="Frustum.cpp" />
+    <ClCompile Include="ModelList.cpp" />
+    <ClCompile Include="Position.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="System">
-      <UniqueIdentifier>{1f5f27bf-2d45-4493-b2cf-f67c465c8515}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shader">
-      <UniqueIdentifier>{1e6fd3da-ecc4-4cbe-89c9-b1251fe39023}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core">
-      <UniqueIdentifier>{84fad780-e6d4-40b7-9b83-989310dd2adc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="System\D3D">
-      <UniqueIdentifier>{8162d861-717e-47b5-874e-b10a61d4744f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="System\Graphic">
-      <UniqueIdentifier>{20d16697-453e-4cd0-ba2f-3b861956ad68}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="System\Input">
-      <UniqueIdentifier>{88d7e56b-ebf6-4af5-b982-aebe122192ee}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="System\System">
-      <UniqueIdentifier>{6cea3c51-0b15-4ef2-9582-b640794c8bd2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shader\Color">
-      <UniqueIdentifier>{d95a3000-7103-4163-8326-e7f8c0f08dc9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shader\Font">
-      <UniqueIdentifier>{36b07268-aab7-4019-962b-c240ac095fe1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shader\Light">
-      <UniqueIdentifier>{aaca3ad7-dcfe-490e-a86a-d44897555f81}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shader\Texture">
-      <UniqueIdentifier>{e7b7ef31-f309-4dea-899c-da24565bf588}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Camera">
-      <UniqueIdentifier>{73709f24-6a09-4e7a-8cd3-ec9babda1bd7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Font">
-      <UniqueIdentifier>{30af2ea4-55d7-4aa4-91a1-8944ece409c6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Light">
-      <UniqueIdentifier>{2d3be5f0-dd71-429a-b231-e1f20ba0c711}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Model">
-      <UniqueIdentifier>{cf731be9-1f52-423e-9900-8ee35513aa0d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Text">
-      <UniqueIdentifier>{ecea6550-5049-4708-a5c2-4eaa9c170b3f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Texture">
-      <UniqueIdentifier>{6d5429b8-ebe2-4979-a848-dab4c19bd7b1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Bitmap">
-      <UniqueIdentifier>{0bb89600-80b7-4547-bf6c-4dff86863794}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ImGUI">
       <UniqueIdentifier>{8534e5e4-045c-422c-9051-7bbb0de21184}</UniqueIdentifier>
     </Filter>
-    <Filter Include="System\Sound">
-      <UniqueIdentifier>{3ff4b88b-c306-4323-9bef-93ac0df1e7d7}</UniqueIdentifier>
+    <Filter Include="Engine">
+      <UniqueIdentifier>{96a1fc37-bb43-4456-8759-6f540b394d31}</UniqueIdentifier>
     </Filter>
-    <Filter Include="System\FPS">
-      <UniqueIdentifier>{e889825f-0a49-4d50-bf3f-95ad358b6197}</UniqueIdentifier>
+    <Filter Include="Engine\System">
+      <UniqueIdentifier>{1f5f27bf-2d45-4493-b2cf-f67c465c8515}</UniqueIdentifier>
     </Filter>
-    <Filter Include="System\CPU">
+    <Filter Include="Engine\System\D3D">
+      <UniqueIdentifier>{8162d861-717e-47b5-874e-b10a61d4744f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\System\Graphic">
+      <UniqueIdentifier>{20d16697-453e-4cd0-ba2f-3b861956ad68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\System\Input">
+      <UniqueIdentifier>{88d7e56b-ebf6-4af5-b982-aebe122192ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\System\System">
+      <UniqueIdentifier>{6cea3c51-0b15-4ef2-9582-b640794c8bd2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\System\UI">
+      <UniqueIdentifier>{49fd7b6e-9d08-45a0-97d5-37fa770e011e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\System\UI\Timer">
+      <UniqueIdentifier>{6cf5d831-2c1e-4311-aff3-17a160687b3f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\System\UI\CPU">
       <UniqueIdentifier>{ddf0a1e4-7e5f-4424-80d3-b80b6dd6da4a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="System\Timer">
-      <UniqueIdentifier>{6cf5d831-2c1e-4311-aff3-17a160687b3f}</UniqueIdentifier>
+    <Filter Include="Engine\System\UI\FPS">
+      <UniqueIdentifier>{e889825f-0a49-4d50-bf3f-95ad358b6197}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Core">
+      <UniqueIdentifier>{84fad780-e6d4-40b7-9b83-989310dd2adc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Core\Camera">
+      <UniqueIdentifier>{73709f24-6a09-4e7a-8cd3-ec9babda1bd7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Core\Font">
+      <UniqueIdentifier>{30af2ea4-55d7-4aa4-91a1-8944ece409c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Core\Light">
+      <UniqueIdentifier>{2d3be5f0-dd71-429a-b231-e1f20ba0c711}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Core\Model">
+      <UniqueIdentifier>{cf731be9-1f52-423e-9900-8ee35513aa0d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Core\Text">
+      <UniqueIdentifier>{ecea6550-5049-4708-a5c2-4eaa9c170b3f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Core\Texture">
+      <UniqueIdentifier>{6d5429b8-ebe2-4979-a848-dab4c19bd7b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Core\Bitmap">
+      <UniqueIdentifier>{0bb89600-80b7-4547-bf6c-4dff86863794}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Core\Sound">
+      <UniqueIdentifier>{3ff4b88b-c306-4323-9bef-93ac0df1e7d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Shader">
+      <UniqueIdentifier>{1e6fd3da-ecc4-4cbe-89c9-b1251fe39023}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Shader\Color">
+      <UniqueIdentifier>{d95a3000-7103-4163-8326-e7f8c0f08dc9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Shader\Font">
+      <UniqueIdentifier>{36b07268-aab7-4019-962b-c240ac095fe1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Shader\Light">
+      <UniqueIdentifier>{aaca3ad7-dcfe-490e-a86a-d44897555f81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Shader\Texture">
+      <UniqueIdentifier>{e7b7ef31-f309-4dea-899c-da24565bf588}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\System\Type">
+      <UniqueIdentifier>{a7d3cae8-0fbe-4c00-9399-b000ce8912fb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="color.ps">
-      <Filter>Shader\Color</Filter>
+      <Filter>Engine\Shader\Color</Filter>
     </None>
     <None Include="color.vs">
-      <Filter>Shader\Color</Filter>
+      <Filter>Engine\Shader\Color</Filter>
     </None>
     <None Include="Font.ps">
-      <Filter>Shader\Font</Filter>
+      <Filter>Engine\Shader\Font</Filter>
     </None>
     <None Include="Font.vs">
-      <Filter>Shader\Font</Filter>
+      <Filter>Engine\Shader\Font</Filter>
     </None>
     <None Include="Light.ps">
-      <Filter>Shader\Light</Filter>
+      <Filter>Engine\Shader\Light</Filter>
     </None>
     <None Include="Light.vs">
-      <Filter>Shader\Light</Filter>
+      <Filter>Engine\Shader\Light</Filter>
     </None>
     <None Include="texture.ps">
-      <Filter>Shader\Texture</Filter>
+      <Filter>Engine\Shader\Texture</Filter>
     </None>
     <None Include="texture.vs">
-      <Filter>Shader\Texture</Filter>
+      <Filter>Engine\Shader\Texture</Filter>
     </None>
   </ItemGroup>
 </Project>
